@@ -148,7 +148,31 @@ git clone <repository-url>
 cd suntus-platform
 ```
 
-2. **Instalar dependencias**
+2. **Configurar variables de entorno**
+
+```bash
+# Variables para Docker Compose
+cp .env.docker.example .env.docker
+
+# Variables para las apps
+cp .env.example .env.local
+cp apps/suntus-services/.env.example apps/suntus-services/.env.local
+
+# Editar .env.docker si necesitas cambiar puertos o credenciales de Docker
+# Editar .env.local con tus valores según sea necesario
+```
+
+3. **Iniciar servicios de desarrollo (PostgreSQL y Redis)**
+
+```bash
+# Iniciar Docker Compose
+docker-compose up -d
+
+# Verificar que están corriendo
+docker-compose ps
+```
+
+4. **Instalar dependencias**
 
 ```bash
 pnpm install
@@ -156,11 +180,13 @@ pnpm install
 
 Esto instalará todas las dependencias de todas las apps y packages en el monorepo.
 
-3. **Verificar la instalación**
+5. **Verificar la instalación**
 
 ```bash
 pnpm turbo run build
 ```
+
+**Nota:** Para más detalles sobre configuración de entornos (desarrollo vs producción), ver [Configuración de Entornos](./docs/strategies/configuracion-entornos.md)
 
 ## Scripts Disponibles
 
@@ -300,16 +326,14 @@ pnpm --filter suntus-core build
 
 ### Variables de Entorno
 
-Cada app tiene su propio archivo `.env.local` (no commiteado):
+Cada app tiene su propio archivo `.env.local` (no commiteado). Copia desde `.env.example`:
 
-```bash
-# apps/suntus-services/.env.local
-DATABASE_URL=postgresql://...
-AUTH0_DOMAIN=...
-AUTH0_CLIENT_ID=...
-```
 
-**Nota:** Los archivos `.env.local` están en `.gitignore`. Usa `.env.example` como template.
+**Nota:** 
+- Los archivos `.env.local` están en `.gitignore`. 
+- Usa `.env.example` como template.
+- Para desarrollo: `docker-compose up -d` inicia PostgreSQL y Redis.
+- Para producción: Configurar Cloud SQL y Upstash según [Configuración de Entornos](./docs/strategies/configuracion-entornos.md)
 
 ### Configuración de Metro (React Native)
 
@@ -402,8 +426,8 @@ Si TypeScript no encuentra los packages:
 ## Documentación Adicional
 
 - [Plan de Implementación](./docs/strategies/turborepo-implementation-plan.md)
-- [Auditoría de Versiones](./docs/version-audit.md)
-- [Correcciones Aplicadas](./docs/correcciones-versiones.md)
+- [Mejores Prácticas de Arquitectura](./docs/strategies/mejores-practicas-arquitectura.md)
+- [Configuración de Entornos](./docs/strategies/configuracion-entornos.md)
 
 
 **Desarrollado para suntUS**

@@ -1,0 +1,71 @@
+version: '3.8'
+
+# Docker Compose lee variables de:
+# 1. .env (si existe)
+# 2. .env.docker (si existe)
+# 3. Variables del sistema
+# 4. Valores por defecto (después de :-)
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: suntus-postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-suntus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-suntus_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-suntus_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-suntus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suntus-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: suntus-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - suntus-network
+
+  # Opcional: pgAdmin para gestión visual de la BD
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: suntus-pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@suntus.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - suntus-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
+
+networks:
+  suntus-network:
+    driver: bridge
+

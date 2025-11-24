@@ -33,6 +33,10 @@ web-build/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.docker
+# Pero SÍ commiteamos .env.example
+!.env.example
+!.env.docker.example
 
 # Testing
 coverage/
