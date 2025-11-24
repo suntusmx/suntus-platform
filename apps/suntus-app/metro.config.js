@@ -12,5 +12,8 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
+// Configuración para web
+config.resolver.platforms = ['ios', 'android', 'native', 'web'];
+
 module.exports = config;
 

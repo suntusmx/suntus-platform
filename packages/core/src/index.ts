@@ -1,13 +1,8 @@
-import { z } from "zod";
+// Schemas Zod
+export * from './schemas';
 
-export const UserSchema = z.object({
-    id: z.string().uuid(),
-    email: z.string().email(),
-    name: z.string(),
-});
+// Types TypeScript
+export * from './types';
 
-export type User = z.infer<typeof UserSchema>;
-
-export const formatDate = (date: Date) => {
-    return date.toISOString();
-};
+// Utils
+export * from './utils/format';

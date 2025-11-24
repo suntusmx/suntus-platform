@@ -1,11 +1,24 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { Public } from './common/decorators/public.decorator';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get('health')
+  @Public()
+  getHealth() {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'suntus-services',
+      version: '1.0.0',
+    };
+  }
+
   @Get()
+  @Public()
   getHello(): string {
     return this.appService.getHello();
   }

@@ -86,6 +86,7 @@ Desktop.ini
 # NestJS
 dist/
 *.tsbuildinfo
+schema.gql
 
 # Next.js
 .next/

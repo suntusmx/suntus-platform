@@ -11,11 +11,25 @@
             "outputs": [
                 "dist/**",
                 ".next/**",
-                "build/**"
+                "build/**",
+                "out/**"
             ]
         },
-        "lint": {},
-        "type-check": {},
+        "lint": {
+            "dependsOn": [
+                "^build"
+            ]
+        },
+        "type-check": {
+            "dependsOn": [
+                "^build"
+            ]
+        },
+        "test": {
+            "dependsOn": [
+                "^build"
+            ]
+        },
         "dev": {
             "cache": false,
             "persistent": true

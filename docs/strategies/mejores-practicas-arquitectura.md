@@ -8,24 +8,28 @@ Este documento establece las reglas y principios de alto nivel para el desarroll
 
 ### 1.1 Arquitectura de Componentes
 
-**Regla:** Organizar componentes siguiendo una estructura jerárquica clara.
+**Regla:** Organizar componentes de forma simple y mantenible.
 
-- **Componentes Presentacionales:** Solo reciben props y renderizan UI. No manejan lógica de negocio.
-- **Componentes Contenedores:** Manejan estado y lógica, delegan renderizado a componentes presentacionales.
-- **Hooks Personalizados:** Extraer lógica reutilizable en hooks custom (`useAuth`, `useWorkout`, etc.).
+- **Componentes Funcionales:** Componentes simples que reciben props y renderizan UI.
+- **Hooks Personalizados:** Extraer toda la lógica reutilizable a hooks custom (`useAuth`, `useWorkout`, `useWorkoutLogic`, etc.).
+- **Separación por Responsabilidad:** No crear "Contenedores" artificiales. Si un componente necesita lógica, usa un hook.
 
 **Estructura de Carpetas:**
 ```
 screens/
   ├── Home/
-  │   ├── HomeScreen.tsx        # Contenedor
+  │   ├── HomeScreen.tsx         # Componente + hook
+  │   ├── useHomeLogic.ts        # Lógica extraída
   │   ├── HomeScreen.test.tsx
   │   └── components/            # Componentes específicos de esta pantalla
   │       ├── WorkoutCard.tsx
   │       └── ProgressChart.tsx
   └── Profile/
-      └── ProfileScreen.tsx
+      ├── ProfileScreen.tsx
+      └── useProfileLogic.ts
 ```
+
+**Principio KISS:** No crear archivos `WorkoutContainer.tsx` solo por seguir un patrón. Si necesitas lógica, usa un hook. Mantén la estructura simple.
 
 ### 1.2 Manejo de Estado
 
@@ -61,15 +65,18 @@ app/
 
 ### 1.4 Performance
 
-**Regla:** Optimizar renderizado y memoria desde el día 1.
+**Regla:** Medir primero, optimizar después. Evitar optimización prematura.
 
-- **Memoización:** `React.memo` para componentes que reciben props que cambian frecuentemente.
-- **Lazy Loading:** `React.lazy` o `expo-router` lazy loading para pantallas pesadas.
+- **Profiling:** Usar React DevTools Profiler para identificar problemas reales antes de optimizar.
+- **Memoización Selectiva:** `React.memo`, `useMemo`, `useCallback` solo cuando hay evidencia de problema de performance. No memoizar botones simples o componentes triviales.
+- **Lazy Loading:** `React.lazy` o `expo-router` lazy loading para pantallas pesadas o que no se usan frecuentemente.
 - **FlatList Optimizada:** Siempre usar `keyExtractor`, `getItemLayout` cuando sea posible.
 - **Imágenes:** Usar `expo-image` con `cachePolicy` y tamaños optimizados.
-- **Evitar Re-renders:** No crear objetos/funciones nuevas en el render (usar `useMemo`, `useCallback`).
+- **Evitar Re-renders Innecesarios:** No crear objetos/funciones nuevas en el render, pero solo optimizar si causa problemas medibles.
 
-**Métrica Objetivo:** 60 FPS constante, tiempo de carga inicial < 2 segundos.
+**Principio:** La memoización tiene costo (comparación de dependencias). Si no hay problema medible, no memoices.
+
+**Métricas Objetivo:** 60 FPS constante, tiempo de carga inicial < 2 segundos. Pero mide primero, optimiza después.
 
 ### 1.5 Gestión de Assets
 
@@ -328,27 +335,38 @@ graphql/
 
 ### 3.5 REST API (Complementaria)
 
-**Regla:** REST para endpoints simples, GraphQL para queries complejas.
+**Regla:** REST para endpoints simples, GraphQL para queries complejas. Versionar siempre.
 
 - **REST:** Webhooks, callbacks de pago, endpoints de autenticación.
 - **GraphQL:** 90% de las queries de las apps (evita over-fetching).
+- **Versionado:** CRÍTICO para apps móviles. Si cambias la API, rompes apps viejas que no se han actualizado.
 
 **Convenciones REST:**
-- `GET /users` - Listar
-- `GET /users/:id` - Obtener uno
-- `POST /users` - Crear
-- `PATCH /users/:id` - Actualizar parcial
-- `DELETE /users/:id` - Eliminar
+- `GET /v1/users` - Listar
+- `GET /v1/users/:id` - Obtener uno
+- `POST /v1/users` - Crear
+- `PATCH /v1/users/:id` - Actualizar parcial
+- `DELETE /v1/users/:id` - Eliminar
+
+**Versionado de API:**
+- **URL Versioning:** `/v1/`, `/v2/` (recomendado para REST)
+- **Header Versioning:** `Accept: application/vnd.suntus.v1+json` (alternativa)
+- **GraphQL:** Usar deprecation warnings y mantener compatibilidad hacia atrás
+- **Estrategia:** Mantener al menos la versión anterior activa. Deprecar con 6 meses de aviso.
+
+**Principio:** En móviles, los usuarios no actualizan inmediatamente. Siempre versiona tus APIs.
 
 ### 3.6 Validación y DTOs
 
-**Regla:** Validar TODO lo que entra al backend.
+**Regla:** Validar TODO lo que entra al backend. Una sola fuente de verdad.
 
-- **Zod Schemas:** En `@suntus/core` para validación compartida frontend/backend.
-- **class-validator:** Para DTOs de NestJS (decorators).
-- **Pipes:** Usar `ValidationPipe` globalmente.
+- **Zod Único:** Usar Zod como única herramienta de validación. Definir schemas en `@suntus/core` para compartir entre frontend y backend.
+- **nestjs-zod:** Usar `nestjs-zod` para integrar schemas de Zod directamente en DTOs de NestJS y Pipes. Elimina la necesidad de `class-validator`.
+- **Pipes:** Usar `ZodValidationPipe` de `nestjs-zod` globalmente.
 
-**Principio:** Nada entra al backend sin validación. Si falla, rechazar inmediatamente.
+**Principio:** NO duplicar validaciones. Define el schema una vez en Zod, úsalo en frontend y backend. Un solo lugar de verdad.
+
+**Anti-pattern a Evitar:** NO uses `class-validator` junto con Zod. Es redundante y genera mantenimiento duplicado.
 
 ### 3.7 Manejo de Errores
 
@@ -583,8 +601,25 @@ common/
 - Elegir la herramienta más simple que resuelva el problema
 - Evitar complejidad innecesaria
 - Código legible > código "inteligente"
+- No crear estructuras artificiales solo por seguir patrones
 
-### 5.5 Code Review
+### 5.5 Feature Flags
+
+**Regla:** Usar feature flags para controlar funcionalidad en producción sin rollback.
+
+- **Propósito:** Activar/desactivar features en producción sin redeploy
+- **Implementación:** Redis o servicio de feature flags (LaunchDarkly, Unleash, o simple Redis)
+- **Uso:** Features experimentales, A/B testing, rollback rápido de features problemáticas
+- **Estrategia:** Flags por entorno (dev, staging, prod) y por porcentaje de usuarios
+
+**Ejemplo de Casos:**
+- Nueva UI de checkout (activar gradualmente)
+- Integración con nuevo proveedor de pago
+- Feature experimental para beta testers
+
+**Principio:** Con CI/CD continuo, necesitas poder apagar cosas sin hacer rollback completo.
+
+### 5.6 Code Review
 
 **Regla:** Todo código debe ser revisado antes de merge.
 
@@ -592,7 +627,7 @@ common/
 - Revisar funcionalidad, tests, performance, seguridad
 - Feedback constructivo y respetuoso
 
-### 5.6 Documentación
+### 5.7 Documentación
 
 **Regla:** Documentar lo que no es obvio.
 
@@ -606,9 +641,10 @@ common/
 
 ### React Native
 - [ ] Estructura de carpetas por feature/screen
+- [ ] Hooks personalizados para lógica (NO contenedores artificiales)
 - [ ] Estado local vs global definido
 - [ ] Expo Router configurado
-- [ ] Performance optimizada (memo, lazy loading)
+- [ ] Performance medida y optimizada selectivamente (NO optimización prematura)
 - [ ] Error boundaries implementados
 - [ ] Tests para lógica crítica
 
@@ -624,7 +660,8 @@ common/
 - [ ] Clean Architecture implementada
 - [ ] Fastify adapter configurado
 - [ ] GraphQL Code First
-- [ ] Validación en todos los inputs
+- [ ] Validación con Zod (nestjs-zod, NO class-validator)
+- [ ] API versionada (/v1/, /v2/)
 - [ ] Manejo de errores consistente
 - [ ] Autenticación/autorización
 - [ ] Logging estructurado
@@ -638,6 +675,40 @@ common/
 - [ ] Transacciones donde necesario
 - [ ] Backups configurados
 - [ ] Monitoreo activo
+
+---
+
+## 7. Red Flags y Anti-Patterns a Evitar
+
+### 7.1 Validación Dual (Zod + class-validator)
+
+**Error:** Definir validaciones dos veces (una en Zod para frontend, otra en class-validator para backend).
+
+**Solución:** Usar `nestjs-zod` para usar schemas de Zod directamente en NestJS. Una sola fuente de verdad.
+
+### 7.2 Contenedores Artificiales
+
+**Error:** Crear archivos `Container.tsx` solo por seguir el patrón "Container/Presentational" de 2018.
+
+**Solución:** Componentes funcionales + hooks personalizados. Mantener simple (KISS).
+
+### 7.3 Optimización Prematura
+
+**Error:** Llenar el código de `React.memo`, `useCallback`, `useMemo` "por si acaso".
+
+**Solución:** Medir primero con React DevTools Profiler. Optimizar solo cuando hay evidencia de problema.
+
+### 7.4 API Sin Versionar
+
+**Error:** Cambiar APIs sin versionar, rompiendo apps móviles viejas.
+
+**Solución:** Siempre versionar APIs (`/v1/`, `/v2/`). Mantener compatibilidad hacia atrás.
+
+### 7.5 Feature Flags Ausentes
+
+**Error:** No tener forma de desactivar features en producción sin rollback completo.
+
+**Solución:** Implementar feature flags desde el inicio. Crítico para CI/CD continuo.
 
 ---
 
