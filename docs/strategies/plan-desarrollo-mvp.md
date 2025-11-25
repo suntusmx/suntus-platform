@@ -208,16 +208,16 @@ Portal Fitoteca (Independiente)
 **Objetivo:** Establecer la base técnica que soportará todo el desarrollo.
 
 #### 0.1 Setup del Monorepo
-- [ ] Configurar Turborepo
-- [ ] Configurar pnpm workspaces
-- [ ] Estructura de carpetas base
-- [ ] Configuración de TypeScript compartido
-- [ ] Configuración de ESLint/Prettier
+- [x] Configurar Turborepo
+- [x] Configurar pnpm workspaces
+- [x] Estructura de carpetas base
+- [x] Configuración de TypeScript compartido
+- [x] Configuración de ESLint/Prettier
 
 #### 0.2 Base de Datos y Esquemas Base
-- [ ] Setup de PostgreSQL con Prisma
-- [ ] Esquema base de usuarios (User, Expert)
-- [ ] **Sistema de Usuarios y Roles (RBAC):**
+- [x] Setup de PostgreSQL con Prisma
+- [x] Esquema base de usuarios (User, Expert)
+- [x] **Sistema de Usuarios y Roles (RBAC):**
   - Modelo `SystemAdmin` (independiente, NO usa Auth0):
     - Campos: `id`, `email` (unique), `passwordHash` (Bcrypt/Argon2), `name`, `role` (SUPER_ADMIN, SUPPORT)
     - Auth Strategy: LocalAuthGuard con JWT exclusivo para panel administrativo (suntus-core)
@@ -227,7 +227,7 @@ Portal Fitoteca (Independiente)
     - Campos: `id`, `auth0Id` (unique), `email`, `phone`, `name`, `role`, `countryCode`, `language`, etc.
   - Modelo `ExpertProfile`:
     - Campos: `stripeAccountId`, `isVerified`, `verificationStatus`, `rankingScore`, `documentsUrl` (JSONB - Private Bucket)
-- [ ] **Sistema de Validación de Expertos:**
+- [x] **Sistema de Validación de Expertos:**
   - Campo `isVerified` (boolean) en ExpertProfile
   - Campo `documentsUrl` (JSONB) para almacenar:
     - `officialId`: URL del documento en bucket privado (ID, pasaporte)
@@ -261,7 +261,8 @@ Portal Fitoteca (Independiente)
     - `code`: PK
     - `municipalityId`: FK a municipalities
   - **Script de migración:** Importar datos de `countries-list` + datos específicos de México
-- [ ] **Sistema de Auditoría Immutable (CRÍTICO):**
+  - [x] Script de seed creado (`prisma/seed.ts`) con `countries-list`
+- [x] **Sistema de Auditoría Immutable (CRÍTICO):**
   - Tabla `auditLog` (APPEND ONLY - nunca se borra ni edita):
     - `id`: PK (UUID)
     - `entityType`: String (ej. "WorkoutPlan", "TermsAndConditions", "User", "Expert")
@@ -276,7 +277,7 @@ Portal Fitoteca (Independiente)
     - `timestamp`: DateTime (UTC)
     - **Índices:** entityType+entityId, actorId, action, timestamp
     - **Regla:** Tabla APPEND ONLY. Nunca se borra ni se edita.
-- [ ] **Sistema de Términos y Condiciones (Versionado):**
+- [x] **Sistema de Términos y Condiciones (Versionado):**
   - Tabla `termsAndConditions`:
     - `id`: PK
     - `version`: String (semantic versioning: "1.0", "1.1", "2.0")
@@ -464,30 +465,30 @@ Portal Fitoteca (Independiente)
 - [ ] Refresh tokens
 
 #### 0.6 Sistema de Auditoría y Términos (CRÍTICO)
-- [ ] Implementar `AuditService` con métodos para:
+- [x] Implementar `AuditService` con métodos para:
   - Logging genérico de acciones
   - Logging de aceptación de T&C
   - Logging de validación de expertos
   - Logging de pagos
   - Logging de acceso a datos sensibles
-- [ ] Crear `AuditInterceptor` global (NestJS)
-- [ ] Crear `AuditGuard` para auditoría manual
-- [ ] Implementar `TermsService`:
+- [x] Crear `AuditInterceptor` global (NestJS)
+- [x] Crear `AuditGuard` para auditoría manual
+- [x] Implementar `TermsService`:
   - Gestión de versiones de T&C
   - Verificación de aceptación
   - Aceptación de términos (con registro en AuditLog)
   - Publicación de nueva versión
-- [ ] Crear `TermsAcceptanceGuard` (App Blocker)
-- [ ] Configurar middleware en `main.ts`:
+- [x] Crear `TermsAcceptanceGuard` (App Blocker)
+- [x] Configurar middleware en `main.ts`:
   - `AuditInterceptor` global
   - `TermsAcceptanceGuard` en rutas protegidas
-- [ ] Endpoints de T&C:
+- [x] Endpoints de T&C:
   - GET `/api/v1/terms/current` - Obtener versión actual
   - GET `/api/v1/terms/status` - Verificar aceptación del usuario
   - POST `/api/v1/terms/accept` - Aceptar términos
 
 #### 0.5 Almacenamiento de Archivos (Google Cloud Storage)
-- [ ] Configuración de buckets:
+- [x] Configuración de buckets:
   - **Bucket público** (`suntus-public`):
     - Fotos de perfil, imágenes de ejercicios, videos
     - Acceso: Lectura pública
@@ -496,19 +497,42 @@ Portal Fitoteca (Independiente)
     - Acceso: **SOLO `suntus-admin`** (Service Account con permisos específicos)
     - Política IAM restrictiva
     - Encriptación en reposo habilitada
-- [ ] Generación de Signed URLs para documentos privados (solo admin)
-- [ ] Validación de permisos antes de acceso a bucket privado
+- [x] Generación de Signed URLs para documentos privados (solo admin)
+- [x] Validación de permisos antes de acceso a bucket privado
+- [x] `StorageService` implementado con soporte para GCS opcional (graceful degradation)
+
+#### 0.7 Cron Jobs y Tareas Programadas
+- [x] Configuración de scheduler (NestJS ScheduleModule)
+- [x] **Cron Job T+7 (Diario):**
+  - Busca `PaymentTransaction` con `walletStatus = PENDING` y `pendingUntil <= hoy`
+  - Mueve fondos de `pendingBalance` a `availableBalance` en `ExpertWallet`
+  - Actualiza `walletStatus = AVAILABLE` en transacciones
+  - Actualiza `movedToAvailableAt` timestamp
+- [x] **Cron Job de Payouts (Miércoles):**
+  - Ejecuta cada miércoles
+  - Busca expertos con `availableBalance > 0`
+  - Crea transferencia en Stripe Connect para cada experto
+  - Actualiza `totalPaidOut` y limpia `availableBalance`
+  - Registra en `ExpertPayout` con status `PROCESSED`
+- [x] **Cron Job de Escrow (Mensual):**
+  - Ejecuta el primer día de cada mes
+  - Busca transacciones con `isEscrow = true` y `escrowCurrentMonth < escrowTotalMonths`
+  - Libera `escrowReleaseAmount` a `pendingBalance` (T+7)
+  - Incrementa `escrowCurrentMonth`
+  - Cuando `escrowCurrentMonth = escrowTotalMonths`, marca como `RELEASED`
 
 **Entregables:**
-- Monorepo funcional
-- Base de datos con esquemas base
-- **Catálogo de ubicaciones poblado** (usando `countries-list` + datos de México)
-- **i18n configurado** (es/en) con JSONB en BD
-- Auth0 funcionando
-- **Buckets de GCS configurados** (público y privado con seguridad)
-- **Sistema de Auditoría funcionando** (AuditLog append-only)
-- **Sistema de Términos y Condiciones** (versionado y tracking)
-- **App Blocker** implementado (bloquea si no acepta T&C)
+- [x] Monorepo funcional
+- [x] Base de datos con esquemas base (Schema Prisma completo con todos los modelos)
+- [x] **Script de seed para países** (usando `countries-list`)
+- [ ] **Catálogo de ubicaciones poblado** (requiere migración inicial de BD)
+- [ ] **i18n configurado** (es/en) con JSONB en BD
+- [ ] Auth0 funcionando
+- [x] **Buckets de GCS configurados** (público y privado con seguridad) - `StorageService` implementado
+- [x] **Sistema de Auditoría funcionando** (AuditLog append-only) - `AuditService`, `AuditInterceptor`, `AuditModule`
+- [x] **Sistema de Términos y Condiciones** (versionado y tracking) - `TermsService`, `TermsAcceptanceGuard`, `TermsModule`
+- [x] **App Blocker** implementado (bloquea si no acepta T&C) - `TermsAcceptanceGuard`
+- [x] **Cron Jobs configurados** - `SchedulerModule` con jobs T+7, Payouts, Escrow
 
 ---
 
@@ -748,37 +772,145 @@ Portal Fitoteca (Independiente)
 - `directory:expert.card`
 - `directory:expert.subscribe`
 
-#### 3.2 Sistema de Pagos y Monetización (Backend)
+#### 3.2 Sistema de Pagos y Monetización (Backend) - Stripe Connect
 **Prioridad:** CRÍTICA - Depende de: Nada (puede desarrollarse en paralelo)
 
-**Backend:**
-- [ ] Integración con Stripe
-- [ ] Endpoint de creación de intención de pago
-- [ ] Webhook de Stripe para eventos de pago
-- [ ] Endpoint de verificación de pago
-- [ ] Sistema de reembolsos básico
-- [ ] **Sistema de Monetización Pay-Per-Seat:**
-  - Endpoint de cálculo de comisión según número de usuarios activos
-  - Lógica "Beca del 6to": Si experto tiene 5 usuarios, 6to+ no genera comisión
-  - Endpoint de split de pagos automático:
-    1. Usuario paga a suntUS
-    2. Sistema calcula comisión (según regla del 6to)
-    3. Sistema resta comisión
-    4. Sistema dispersa fondos al experto
-  - Tabla `payments`:
-    - `id`: PK
-    - `userId`: FK
-    - `expertId`: FK
-    - `amount`: Monto total pagado
-    - `suntusCommission`: Comisión de suntUS
-    - `expertPayout`: Pago al experto
-    - `status`: pending, completed, refunded
-  - Tabla `expertPayouts`:
-    - `id`: PK
-    - `expertId`: FK
-    - `totalAmount`: Monto a pagar
-    - `status`: pending, processed
-    - `processedAt`: Fecha de dispersión
+**Arquitectura:**
+- **Stripe Connect:** Motor único de pagos
+- **Cobro vía Web:** Stripe Checkout (evita comisiones IAP)
+- **App Móvil:** Refleja estado de suscripción (no procesa pagos)
+
+**Backend - Integración Stripe Connect:**
+- [ ] Configuración de Stripe Connect
+- [ ] Endpoint para crear cuenta Connect del experto (`stripeAccountId`)
+- [ ] Endpoint para onboarding de experto (Stripe Express)
+- [ ] Webhook de Stripe para eventos de pago y suscripciones
+- [ ] Endpoint de creación de Checkout Session (Stripe Checkout)
+- [ ] Endpoint de verificación de estado de pago
+
+**Backend - Wallet Model (Rolling T+7):**
+- [ ] Modelo `ExpertWallet`:
+  - `pendingBalance`: Fondos en espera (T+7)
+  - `availableBalance`: Fondos disponibles para payout
+  - `totalEarned`: Total histórico ganado
+  - `totalPaidOut`: Total histórico pagado
+- [ ] **Cron Job T+7:**
+  - Ejecuta diariamente
+  - Busca transacciones con `walletStatus = PENDING` y `pendingUntil <= hoy`
+  - Mueve fondos de `pendingBalance` a `availableBalance`
+  - Actualiza `walletStatus = AVAILABLE` en `PaymentTransaction`
+- [ ] **Cron Job de Payouts (Miércoles):**
+  - Ejecuta cada miércoles
+  - Busca expertos con `availableBalance > 0`
+  - Crea transferencia en Stripe Connect
+  - Actualiza `totalPaidOut` y limpia `availableBalance`
+  - Registra en `ExpertPayout`
+
+**Backend - Escrow para Packs (Goteo):**
+- [ ] Lógica de escrow para pagos anticipados (ej: 6 meses):
+  - Si usuario paga 6 meses por adelantado:
+    - `isEscrow = true`
+    - `escrowTotalMonths = 6`
+    - `escrowCurrentMonth = 1`
+    - `escrowReleaseAmount = totalAmount / 6`
+  - Cada mes, cron job libera 1/6 del valor:
+    - Incrementa `escrowCurrentMonth`
+    - Mueve `escrowReleaseAmount` a `pendingBalance` (T+7)
+    - Cuando `escrowCurrentMonth = escrowTotalMonths`, marca como `RELEASED`
+
+**Backend - Grandfathering (Snapshot de Precios):**
+- [ ] Modelo `SubscriptionSnapshot`:
+  - Snapshot inmutable del precio al momento de contratar
+  - Campos: `stripePriceId`, `amount`, `cycle`, `serviceType`
+  - `archivedAt`: Fecha en que el precio fue archivado
+- [ ] **Lógica de Inmutabilidad:**
+  - Cuando experto cambia precio:
+    1. NO actualizar Price existente en Stripe
+    2. Archivar Price actual (marcar como inactivo)
+    3. Crear nuevo Price en Stripe
+    4. Crear `SubscriptionSnapshot` del precio anterior
+    5. Actualizar `ExpertProfile` con nuevo `stripePriceId`
+- [ ] **Grandfathering en Suscripciones:**
+  - Al crear suscripción, guardar `snapshotId` (FK a `SubscriptionSnapshot`)
+  - Suscripciones activas mantienen `stripePriceId` original
+  - NO se actualiza automáticamente el precio
+- [ ] **Migración de Precio (Opt-in):**
+  - Endpoint para ofrecer nuevo precio al usuario
+  - Usuario puede aceptar nuevo precio o cancelar al final del período
+  - Si acepta: Crear nueva suscripción con nuevo precio, cancelar antigua
+
+**Backend - Política de Reembolsos "Digital Seal" (Anti-Robo):**
+- [ ] Campo `isContentConsumed` en `Subscription` y `AssignedPlan`
+- [ ] **Ventana de Reembolso:**
+  - Reembolso automático permitido solo en primeros 7 días
+  - Después de 7 días, requiere aprobación manual
+- [ ] **El Candado (Consumed Content):**
+  - Endpoint para marcar contenido como consumido:
+    - `POST /api/v1/subscriptions/:id/mark-consumed` (cuando usuario abre plan)
+    - `POST /api/v1/subscriptions/:id/screenshot-detected` (desde app móvil)
+  - Si `isContentConsumed = true`:
+    - Bloquea reembolso automático inmediatamente
+    - Anula ventana de 7 días
+    - Solo reembolso manual con justificación
+- [ ] Endpoint de solicitud de reembolso:
+  - Verifica `isContentConsumed`
+  - Verifica días transcurridos desde `startDate`
+  - Si cumple condiciones: Procesa reembolso automático
+  - Si no: Requiere aprobación manual
+
+**Backend - Protección Visual (Watermark):**
+- [ ] Endpoint para generar watermark:
+  - Input: `userId`, `userEmail`, `timestamp`
+  - Output: Patrón de texto repetido: `{userEmail} | {userId} | {timestamp}`
+- [ ] **Especificación para Frontend:**
+  - Componente `FloatingWatermark` obligatorio
+  - Props: `userEmail`, `userId`, `timestamp`
+  - Estilos: `pointerEvents: none`, `opacity: 0.1`, `zIndex: 999`
+  - Contenido: Patrón repetido para trazar fugas
+
+**Backend - Prorrateo y Cancelación:**
+- [ ] **Cancelación sin Reembolso Parcial:**
+  - Al cancelar: `cancelsAtPeriodEnd = true`
+  - `cancelAt = endDate` (final del período actual)
+  - NO hay reembolso en efectivo por días no usados
+  - Usuario mantiene acceso hasta `endDate`
+- [ ] **Switch de Experto (Créditos Internos):**
+  - Al cambiar de experto a mitad de ciclo:
+    1. Calcula días restantes: `daysRemaining = (endDate - hoy)`
+    2. Calcula valor proporcional: `creditAmount = (amount / totalDays) * daysRemaining`
+    3. Crea `UserCredit`:
+       - `amount = creditAmount`
+       - `reason = EXPERT_SWITCH`
+       - `sourceSubscriptionId = suscripción anterior`
+    4. Al crear nueva suscripción:
+       - Aplica crédito disponible automáticamente
+       - Reduce monto a pagar
+       - Marca crédito como `APPLIED`
+- [ ] Modelo `UserCredit`:
+  - `userId`, `amount`, `reason`, `status`
+  - `sourceSubscriptionId`, `appliedToSubscriptionId`
+  - `expiresAt` (opcional)
+
+**Backend - Sistema de Monetización Pay-Per-Seat:**
+- [ ] Endpoint de cálculo de comisión según número de usuarios activos
+- [ ] Lógica "Beca del 6to":
+  - Si experto tiene 5 usuarios o menos: comisión normal por todos
+  - Si experto tiene 6 o más: comisión solo por los primeros 5, resto es ingreso neto
+- [ ] Endpoint de split de pagos automático:
+  1. Usuario paga a suntUS (Stripe Checkout)
+  2. Sistema calcula comisión (según regla del 6to)
+  3. Sistema resta comisión
+  4. Sistema agrega a `pendingBalance` del experto (T+7)
+  5. Cron job mueve a `availableBalance` después de 7 días
+  6. Cron job dispersa fondos cada miércoles
+
+**Modelos de Base de Datos:**
+- [ ] `ExpertWallet`: Wallet del experto (pendingBalance, availableBalance)
+- [ ] `PaymentTransaction`: Transacciones con walletStatus (PENDING, AVAILABLE, RELEASED, PAID_OUT)
+- [ ] `SubscriptionSnapshot`: Snapshot inmutable de precios (Grandfathering)
+- [ ] `UserCredit`: Créditos internos por cambio de experto o cancelación
+- [ ] `Subscription`: Campos para Grandfathering (snapshotId, stripePriceId) y Digital Seal (isContentConsumed)
+- [ ] `AssignedPlan`: Campos para Digital Seal (isContentConsumed, screenshotDetected)
 
 **Nota:** Esta funcionalidad puede desarrollarse en paralelo a otras fases.
 
@@ -797,13 +929,20 @@ Portal Fitoteca (Independiente)
 - [ ] Endpoint de cancelación (48 horas)
 
 **Frontend (suntus-app):**
-- [ ] Pantalla de pasarela de pago
+- [ ] Pantalla de pasarela de pago:
+  - Redirección a Stripe Checkout (pago vía web)
+  - Manejo de retorno después del pago
+  - Sincronización de estado de suscripción
 - [ ] Formulario de template de preguntas personales
 - [ ] Formulario de template de nutrición
 - [ ] Formulario de template deportivo
 - [ ] Lógica de flujo (nutrición primero si doble servicio)
 - [ ] Estado "Pendiente" visible
 - [ ] Botón de cancelación (habilitado después de 48h)
+- [ ] **Aplicación de Créditos:**
+  - Mostrar créditos internos disponibles
+  - Aplicar automáticamente al crear nueva suscripción
+  - Mostrar descuento aplicado
 
 **Traducciones necesarias:**
 - `subscription:payment.title`
@@ -962,6 +1101,17 @@ Portal Fitoteca (Independiente)
   - Detalle de ejercicios por día
   - Videos de ejecución
   - Seguimiento de progreso
+- [ ] **Componente FloatingWatermark (OBLIGATORIO):**
+  - Props: `userEmail`, `userId`, `timestamp`
+  - Estilos: `pointerEvents: 'none'`, `opacity: 0.1`, `zIndex: 999`
+  - Contenido: Patrón repetido `{userEmail} | {userId} | {timestamp}`
+  - Se muestra en todas las pantallas de rutinas deportivas
+- [ ] **Detección de Screenshots:**
+  - Listener para eventos de screenshot (si la plataforma lo soporta)
+  - Al detectar: Enviar evento al backend para marcar `screenshotDetected = true`
+- [ ] **Marcado de Contenido Consumido:**
+  - Al abrir el plan por primera vez, enviar evento al backend
+  - Marca `isContentConsumed = true` en `AssignedPlan` y `Subscription`
 
 **Frontend (suntus-pro):**
 - [ ] Pantalla blank (sin usuarios)
@@ -1023,33 +1173,36 @@ Portal Fitoteca (Independiente)
 - [ ] Endpoint de métodos de pago guardados
 - [ ] Endpoint de renovación de suscripción
 - [ ] Endpoint de historial de pagos recibidos (experto)
-- [ ] Endpoint de retiro de fondos (experto)
+- [ ] Endpoint de historial de transacciones del wallet (con estados: PENDING, AVAILABLE, PAID_OUT)
 - [ ] Endpoint de cambio de ciclo de facturación
-- [ ] Endpoint de solicitud de reembolso
+- [ ] Endpoint de solicitud de reembolso:
+  - Verificar `isContentConsumed` (bloquea si es true)
+  - Verificar días transcurridos (solo primeros 7 días para automático)
+  - Procesar reembolso automático o requerir aprobación manual
 - [ ] Lógica de bloqueo si no paga (no puede pedir plan, subir evidencia, chatear)
-- [ ] **Sistema de Monetización Pay-Per-Seat:**
-  - Endpoint de cálculo de comisión según número de usuarios activos
-  - Lógica "Beca del 6to": Si experto tiene 5 usuarios, 6to+ no genera comisión
-  - Endpoint de split de pagos automático:
-    1. Usuario paga a suntUS
-    2. Sistema calcula comisión (según regla del 6to)
-    3. Sistema resta comisión
-    4. Sistema dispersa fondos al experto
-  - Tabla `payments` con campos: `amount`, `suntusCommission`, `expertPayout`
-  - Tabla `expertSubscriptions` con contador de usuarios activos
-  - Cola de payouts para dispersar fondos automáticamente
+- [ ] **Sistema de Monetización Pay-Per-Seat (ya implementado en FASE 3.2):**
+  - Ver sección 3.2 para detalles completos
 - [ ] **Dashboard de Monetización (experto):**
   - Mostrar número de usuarios activos
+  - Mostrar wallet: pendingBalance, availableBalance, totalEarned, totalPaidOut
   - Mostrar cálculo de comisión (con indicador de "Beca del 6to")
   - Mostrar ingresos totales vs comisión vs payout
-  - Mostrar próximos pagos programados
+  - Mostrar próximos payouts (cada miércoles, automático)
+  - Mostrar escrow (packs) con meses restantes
 
 **Frontend (suntus-app):**
 - [ ] Pantalla de historial de pagos
 - [ ] Descarga de comprobantes
 - [ ] Gestión de métodos de pago
 - [ ] Renovación de suscripción
-- [ ] Solicitud de reembolso
+- [ ] Solicitud de reembolso:
+  - Verificar si `isContentConsumed = true` (bloquea reembolso automático)
+  - Verificar días transcurridos (solo primeros 7 días para automático)
+  - Mostrar mensaje claro si no es elegible para reembolso automático
+- [ ] **Visualización de Créditos:**
+  - Mostrar créditos internos disponibles
+  - Historial de créditos aplicados
+  - Créditos por cambio de experto o cancelación
 
 **Frontend (suntus-pro):**
 - [ ] Pantalla de finanzas
@@ -1713,13 +1866,17 @@ async getExpertDocuments(@Param('id') expertId: string) {
 ## 8. Checklist de Validación por Fase
 
 ### FASE 0 ✅
-- [ ] Monorepo funcional
-- [ ] Base de datos con ubicaciones
+- [x] Monorepo funcional
+- [x] Base de datos con esquemas base (Schema Prisma completo)
+- [x] Script de seed para países (countries-list)
+- [ ] Base de datos con ubicaciones (requiere migración inicial)
 - [ ] i18n configurado (es/en)
 - [ ] Auth0 funcionando
-- [ ] **Sistema de Auditoría funcionando** (AuditLog append-only)
-- [ ] **Sistema de Términos y Condiciones** (versionado y tracking)
-- [ ] **App Blocker** implementado
+- [x] **Sistema de Auditoría funcionando** (AuditLog append-only)
+- [x] **Sistema de Términos y Condiciones** (versionado y tracking)
+- [x] **App Blocker** implementado
+- [x] **Almacenamiento de Archivos (GCS)** configurado
+- [x] **Cron Jobs** configurados (T+7, Payouts, Escrow)
 
 ### FASE 1 ✅
 - [ ] Usuario puede registrarse con país
@@ -2955,13 +3112,13 @@ async getTermsAcceptances(version: string) {
 ### 10.5 Integración en el Plan de Desarrollo
 
 **FASE 0 (Infraestructura Base):**
-- [ ] Crear modelo `AuditLog` en Prisma
-- [ ] Crear modelo `TermsAndConditions` y `TermsAcceptance`
-- [ ] Implementar `AuditService`
-- [ ] Implementar `TermsService`
-- [ ] Crear `AuditInterceptor` global
-- [ ] Crear `TermsAcceptanceGuard`
-- [ ] Configurar middleware de auditoría en `main.ts`
+- [x] Crear modelo `AuditLog` en Prisma
+- [x] Crear modelo `TermsAndConditions` y `TermsAcceptance`
+- [x] Implementar `AuditService`
+- [x] Implementar `TermsService`
+- [x] Crear `AuditInterceptor` global
+- [x] Crear `TermsAcceptanceGuard`
+- [x] Configurar middleware de auditoría en `main.ts`
 
 **FASE 1 (Acceso y Registro):**
 - [ ] Auditar login/logout
@@ -3017,6 +3174,106 @@ async getTermsAcceptances(version: string) {
 15. **Productividad del Experto:** Constructor de rutinas con bloques pre-existentes (no escribir). Plantillas clonables. Mago Nutricional: macros → sugerencias de recetas.
 16. **Fitoteca con Reputación:** Participación en Fitoteca suma puntos al ranking del experto. Contenido híbrido: Ejercicios de Sistema vs Ejercicios de Experto (distinción visual).
 17. **Blindaje Legal & Auditoría (CRÍTICO):** Sistema de AuditLog append-only para protección legal. Todas las acciones críticas se registran (pagos, validaciones, acceso a datos sensibles). Términos y Condiciones versionados con tracking completo. App blocker obligatorio si no acepta nueva versión de T&C.
+18. **Lógica Financiera Completa (Stripe Connect):**
+    - **Wallet Model (Rolling T+7):** Fondos entran en pending, se mueven a available después de 7 días, se dispersan cada miércoles automáticamente
+    - **Escrow para Packs:** Pagos anticipados se liberan en goteo mensual (ej: 6 meses = 1/6 cada mes)
+    - **Grandfathering:** Precios inmutables para suscripciones existentes. Cambio de precio requiere Opt-in del usuario
+    - **Digital Seal (Anti-Robo):** Reembolso automático solo primeros 7 días. Si contenido fue consumido (abierto o screenshot), se bloquea inmediatamente
+    - **Watermark:** Componente obligatorio en pantallas de planes con patrón trazable (email, ID, timestamp)
+    - **Créditos Internos:** Cambio de experto a mitad de ciclo genera crédito que se aplica automáticamente al nuevo experto
+    - **Prorrateo:** Cancelación no genera reembolso parcial, pero cambio de experto sí genera crédito interno
+
+---
+
+## 12. Resumen de Lógica Financiera - Stripe Connect
+
+### 12.1 Arquitectura de Pagos
+
+**Motor Único:** Stripe Connect
+- Todos los pagos se procesan a través de Stripe Connect
+- Cobro vía Web (Stripe Checkout) para evitar comisiones IAP
+- App móvil refleja estado de suscripción (no procesa pagos)
+
+**Flujo de Pago:**
+1. Usuario selecciona experto y servicio
+2. Se crea Checkout Session en Stripe (vía web)
+3. Usuario completa pago en Stripe Checkout
+4. Webhook de Stripe notifica el pago exitoso
+5. Sistema calcula comisión (Beca del 6to)
+6. Se crea `PaymentTransaction` con `walletStatus = PENDING`
+7. Se agrega a `pendingBalance` del experto
+8. Después de 7 días, cron job mueve a `availableBalance`
+9. Cada miércoles, cron job dispersa fondos disponibles
+
+### 12.2 Wallet Model (Rolling T+7)
+
+**Estados de Fondos:**
+- **PENDING:** Fondos recién recibidos (esperando 7 días)
+- **AVAILABLE:** Fondos disponibles para retiro (pasaron T+7)
+- **PAID_OUT:** Fondos ya dispersados al experto
+
+**Cron Jobs:**
+- **T+7 (Diario):** Mueve fondos de PENDING a AVAILABLE
+- **Payouts (Miércoles):** Dispersa fondos AVAILABLE a expertos
+
+### 12.3 Escrow para Packs (Goteo)
+
+**Ejemplo: Usuario paga 6 meses ($600)**
+- Mes 1: Libera $100 a pendingBalance (T+7)
+- Mes 2: Libera $100 a pendingBalance (T+7)
+- ... hasta Mes 6
+- Protege al usuario y al experto
+
+### 12.4 Grandfathering (Snapshot de Precios)
+
+**Proceso:**
+1. Experto cambia precio → NO actualiza Price existente
+2. Archiva Price anterior en Stripe
+3. Crea nuevo Price en Stripe
+4. Crea `SubscriptionSnapshot` del precio anterior
+5. Suscripciones existentes mantienen `snapshotId` original
+6. Nuevas suscripciones usan nuevo precio
+
+**Migración Opt-in:**
+- Experto ofrece nuevo precio a usuarios existentes
+- Usuario decide: aceptar, mantener actual, o cancelar
+
+### 12.5 Digital Seal (Anti-Robo)
+
+**Ventana de Reembolso:**
+- Primeros 7 días: Reembolso automático permitido
+- Después de 7 días: Requiere aprobación manual
+
+**El Candado:**
+- Si `isContentConsumed = true` → Bloquea reembolso automático INMEDIATAMENTE
+- Anula ventana de 7 días
+- Solo reembolso manual con justificación
+
+**Triggers:**
+- Usuario abre plan → `isContentConsumed = true`
+- Screenshot detectado → `screenshotDetected = true` + `isContentConsumed = true`
+
+### 12.6 Watermark (Protección Visual)
+
+**Especificación Frontend:**
+- Componente: `FloatingWatermark`
+- Props: `userEmail`, `userId`, `timestamp`
+- Estilos: `pointerEvents: 'none'`, `opacity: 0.1`, `zIndex: 999`
+- Contenido: Patrón repetido `{userEmail} | {userId} | {timestamp}`
+- Obligatorio en pantallas de rutinas y dietas
+
+### 12.7 Prorrateo y Créditos
+
+**Cancelación:**
+- No hay reembolso parcial en efectivo
+- `cancelsAtPeriodEnd = true`
+- Usuario mantiene acceso hasta `endDate`
+
+**Cambio de Experto:**
+- Calcula días restantes: `daysRemaining = (endDate - hoy)`
+- Calcula crédito: `creditAmount = (amount / totalDays) * daysRemaining`
+- Crea `UserCredit` con `reason = EXPERT_SWITCH`
+- Se aplica automáticamente al nuevo experto
 
 ---
 

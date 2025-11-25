@@ -14,8 +14,9 @@ import { ZodValidationPipe } from 'nestjs-zod';
 config();
 
 async function bootstrap() {
-  // Validar variables de entorno al inicio - OBLIGATORIAS
-  const env = validateEnv();
+  try {
+    // Validar variables de entorno al inicio - OBLIGATORIAS
+    const env = validateEnv();
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -46,9 +47,16 @@ async function bootstrap() {
   // ✅ Validación global con Zod (recomendación de seguridad)
   app.useGlobalPipes(new ZodValidationPipe());
 
-  await app.listen(env.PORT, '0.0.0.0');
-  console.log(`🚀 Application is running on: http://localhost:${env.PORT}/api/v1`);
-  console.log(`📊 GraphQL Playground: http://localhost:${env.PORT}/graphql`);
-  console.log(`💚 Health check: http://localhost:${env.PORT}/api/v1/health`);
+    await app.listen(env.PORT, '0.0.0.0');
+    console.log(`🚀 Application is running on: http://localhost:${env.PORT}/api/v1`);
+    console.log(`📊 GraphQL Playground: http://localhost:${env.PORT}/graphql`);
+    console.log(`💚 Health check: http://localhost:${env.PORT}/api/v1/health`);
+  } catch (error) {
+    console.error('❌ Error al iniciar la aplicación:', error);
+    if (error instanceof Error) {
+      console.error('Mensaje:', error.message);
+    }
+    process.exit(1);
+  }
 }
 bootstrap();

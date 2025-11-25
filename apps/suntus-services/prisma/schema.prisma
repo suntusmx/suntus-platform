@@ -4,6 +4,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Configuración de seed
+seed {
+  provider = "ts-node"
+  path     = "./seed.ts"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -63,6 +69,7 @@ model User {
   assignedPlans     AssignedPlan[]
   termsAcceptances  TermsAcceptance[]
   expertHistory     ExpertHistory[]
+  userCredits       UserCredit[] // Créditos internos por cambio de experto
 
   @@index([email])
   @@index([auth0Id])
@@ -79,7 +86,7 @@ enum UserRole {
 model ExpertProfile {
   id                String   @id @default(uuid())
   userId            String   @unique
-  stripeAccountId   String?  // ID de cuenta de Stripe
+  stripeAccountId   String?  // ID de cuenta de Stripe Connect
   isVerified        Boolean  @default(false)
   verificationStatus VerificationStatus @default(PENDING)
   rankingScore      Float    @default(0.0)
@@ -101,8 +108,12 @@ model ExpertProfile {
   questionTemplates QuestionTemplate[]
   medicalRecords    MedicalRecord[]
   expertHistory     ExpertHistory[]
-  paymentTransactions PaymentTransaction[]
+  paymentTransactions PaymentTransaction[] @relation("PaymentTransactionExpert")
+  payments          Payment[]
+  expertPayouts    ExpertPayout[]
   activeClients     ClientProfile[] @relation("ActiveExpertClients")
+  wallet            ExpertWallet?
+  subscriptionSnapshots SubscriptionSnapshot[]
 
   @@index([isVerified])
   @@index([verificationStatus])
@@ -338,21 +349,30 @@ model RoutineBlock {
 model AssignedPlan {
   id              String   @id @default(uuid())
   userId          String
+  subscriptionId  String?  // FK a Subscription (para rastrear consumo)
   templateId      String?  // WorkoutTemplate (opcional)
   nutritionPlanId String?  // NutritionPlan (opcional)
   status          PlanStatus @default(ACTIVE)
   startDate       DateTime
   endDate         DateTime?
+  // Protección Digital Seal
+  isContentConsumed Boolean @default(false) // Si el usuario abrió/vio el plan
+  contentConsumedAt DateTime? // Timestamp de cuando se consumió
+  screenshotDetected Boolean @default(false) // Si se detectó screenshot
+  screenshotDetectedAt DateTime? // Timestamp de detección
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relaciones
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
   template        WorkoutTemplate? @relation(fields: [templateId], references: [id])
   nutritionPlan   NutritionPlan? @relation(fields: [nutritionPlanId], references: [id])
 
   @@index([userId])
+  @@index([subscriptionId])
   @@index([status])
+  @@index([isContentConsumed])
   @@map("assigned_plans")
 }
 
@@ -394,6 +414,17 @@ model Subscription {
   endDate         DateTime?
   amount          Decimal
   cycle           BillingCycle
+  // Stripe Connect
+  stripeSubscriptionId String?  // ID de suscripción en Stripe
+  stripePriceId   String?  // Price ID original (para Grandfathering)
+  stripeCustomerId String? // Customer ID en Stripe
+  // Grandfathering: Snapshot del precio al momento de contratar
+  snapshotId      String?  // FK a SubscriptionSnapshot (precio inmutado)
+  // Cancelación
+  cancelsAtPeriodEnd Boolean @default(false) // Cancelará al final del período
+  cancelAt        DateTime? // Fecha de cancelación programada
+  // Protección Digital Seal
+  isContentConsumed Boolean @default(false) // Si el usuario vio el contenido, bloquea reembolso
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -401,11 +432,18 @@ model Subscription {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expert          ExpertProfile @relation(fields: [expertId], references: [id])
   payments        Payment[]
+  paymentTransactions PaymentTransaction[]
   templateAnswers TemplateAnswer[]
+  assignedPlans   AssignedPlan[]
+  snapshot        SubscriptionSnapshot? @relation(fields: [snapshotId], references: [id])
+  sourceCredits   UserCredit[] @relation("SourceSubscription")
+  appliedCredits  UserCredit[] @relation("AppliedToSubscription")
 
   @@index([userId])
   @@index([expertId])
   @@index([status])
+  @@index([stripeSubscriptionId])
+  @@index([stripePriceId])
   @@map("subscriptions")
 }
 
@@ -762,24 +800,43 @@ model PaymentTransaction {
   status          PaymentTransactionStatus @default(PENDING)
   stripePaymentId String?  // ID de pago en Stripe
   stripeFee        Decimal? // Fee de Stripe (opcional, para contabilidad completa)
+  // Wallet Model: Rolling T+7
+  walletStatus    WalletTransactionStatus @default(PENDING) // Estado en el wallet
+  pendingUntil    DateTime? // Fecha en que se mueve de pending a available (T+7)
+  movedToAvailableAt DateTime? // Timestamp de cuando se movió a available
+  // Escrow para Packs (Goteo)
+  isEscrow        Boolean  @default(false) // Si es pago de pack (ej: 6 meses)
+  escrowTotalMonths Int?   // Total de meses del pack
+  escrowCurrentMonth Int?  // Mes actual que se está liberando (1-6)
+  escrowReleaseAmount Decimal? // Monto que se libera este mes
   processedAt     DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relaciones
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  expert          ExpertProfile @relation("PaymentTransactionExpert", fields: [expertId], references: [id], onDelete: Cascade, map: "payment_transactions_expertId_fkey")
   subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   payment         Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  wallet          ExpertWallet @relation("PaymentTransactionWallet", fields: [expertId], references: [expertId], map: "payment_transactions_wallet_expertId_fkey")
 
   // IMPORTANTE: Esta tabla es para contabilidad interna.
   // Registra cada cobro con desglose de comisiones y pagos.
   @@index([userId])
   @@index([expertId])
   @@index([status])
+  @@index([walletStatus])
+  @@index([pendingUntil])
   @@index([createdAt])
   @@index([processedAt])
   @@map("payment_transactions")
+}
+
+enum WalletTransactionStatus {
+  PENDING     // Fondos en pending (esperando T+7)
+  AVAILABLE   // Fondos disponibles para payout
+  RELEASED    // Fondos ya liberados (escrow goteo)
+  PAID_OUT    // Fondos ya pagados al experto
 }
 
 enum PaymentTransactionStatus {
@@ -788,4 +845,97 @@ enum PaymentTransactionStatus {
   FAILED      // Transacción fallida
   REFUNDED    // Transacción reembolsada
   CANCELLED   // Transacción cancelada
+}
+
+// ============================================
+// 15. WALLET Y GESTIÓN DE FONDOS (Rolling T+7)
+// ============================================
+
+// ExpertWallet: Wallet del experto con modelo Rolling T+7
+model ExpertWallet {
+  expertId        String   @id // FK única a ExpertProfile
+  pendingBalance  Decimal  @default(0) // Fondos en espera (T+7)
+  availableBalance Decimal @default(0) // Fondos disponibles para payout
+  totalEarned     Decimal  @default(0) // Total histórico ganado
+  totalPaidOut    Decimal  @default(0) // Total histórico pagado
+  lastPayoutAt    DateTime? // Última fecha de payout
+  nextPayoutAt   DateTime? // Próxima fecha de payout (Miércoles)
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  transactions    PaymentTransaction[] @relation("PaymentTransactionWallet")
+
+  @@map("expert_wallets")
+}
+
+// ============================================
+// 16. GRANDFATHERING (Snapshot de Precios)
+// ============================================
+
+// SubscriptionSnapshot: Snapshot inmutable del precio al momento de contratar
+model SubscriptionSnapshot {
+  id              String   @id @default(uuid())
+  expertId        String
+  stripePriceId   String   // Price ID original en Stripe (archivado)
+  amount          Decimal  // Precio original (inmutable)
+  cycle           BillingCycle // Ciclo original
+  serviceType     ServiceType // Tipo de servicio
+  // Metadata del precio
+  priceMetadata   Json?    // JSONB: Metadatos adicionales del precio
+  // Timestamps
+  createdAt       DateTime @default(now()) // Fecha de creación del snapshot
+  archivedAt      DateTime? // Fecha en que el precio fue archivado (cuando experto cambió precio)
+
+  // Relaciones
+  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  subscriptions   Subscription[] // Suscripciones que usan este precio (Grandfathering)
+
+  @@index([expertId])
+  @@index([stripePriceId])
+  @@index([createdAt])
+  @@map("subscription_snapshots")
+}
+
+// ============================================
+// 17. CRÉDITOS INTERNOS (Prorrateo)
+// ============================================
+
+// UserCredit: Créditos internos del usuario por cancelación anticipada o cambio de experto
+model UserCredit {
+  id              String   @id @default(uuid())
+  userId          String
+  amount          Decimal  // Monto del crédito
+  reason          CreditReason // Razón del crédito
+  sourceSubscriptionId String? // Suscripción que generó el crédito
+  appliedToSubscriptionId String? // Suscripción donde se aplicó (si ya se usó)
+  expiresAt       DateTime? // Fecha de expiración del crédito (opcional)
+  status          CreditStatus @default(ACTIVE)
+  createdAt       DateTime @default(now())
+  appliedAt       DateTime? // Fecha en que se aplicó
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceSubscription Subscription? @relation("SourceSubscription", fields: [sourceSubscriptionId], references: [id])
+  appliedToSubscription Subscription? @relation("AppliedToSubscription", fields: [appliedToSubscriptionId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("user_credits")
+}
+
+enum CreditReason {
+  CANCELLATION_PARTIAL  // Cancelación a mitad de ciclo (días no usados)
+  EXPERT_SWITCH         // Cambio de experto (días restantes del anterior)
+  REFUND_CREDIT         // Reembolso convertido a crédito
+  PROMOTIONAL           // Crédito promocional
+}
+
+enum CreditStatus {
+  ACTIVE     // Crédito disponible para usar
+  APPLIED    // Crédito ya aplicado a una suscripción
+  EXPIRED    // Crédito expirado
+  CANCELLED  // Crédito cancelado
 }

@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule as NestGraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { UsersResolver } from '../users/presentation/graphql/users.resolver';
 import { UsersModule } from '../users/users.module';
 import { validateEnv } from '../common/config/env.validation';
 
@@ -35,7 +34,6 @@ const env = validateEnv();
     }),
     UsersModule,
   ],
-  providers: [UsersResolver],
 })
 export class GraphQLConfigModule {}
 

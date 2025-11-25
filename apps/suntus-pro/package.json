@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "expo start --port 7004",
+    "dev": "expo start --web --port 7004",
     "start": "expo start --port 7004",
     "android": "expo start --android --port 7004",
     "ios": "expo start --ios --port 7004",
