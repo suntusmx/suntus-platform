@@ -1,0 +1,47 @@
+{
+  "common": {
+    "welcome": "Bienvenido",
+    "error": {
+      "generic": "Ha ocurrido un error",
+      "notFound": "Recurso no encontrado",
+      "unauthorized": "No autorizado",
+      "forbidden": "Acceso denegado",
+      "validation": "Error de validación"
+    },
+    "success": {
+      "created": "Creado exitosamente",
+      "updated": "Actualizado exitosamente",
+      "deleted": "Eliminado exitosamente"
+    },
+    "buttons": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "create": "Crear",
+      "back": "Volver"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar Sesión",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "errors": {
+        "invalidCredentials": "Credenciales inválidas",
+        "suspended": "Tu cuenta ha sido suspendida"
+      }
+    },
+    "register": {
+      "title": "Registrarse",
+      "personalData": "Datos personales",
+      "country": "País de residencia",
+      "expert": {
+        "title": "Registro como Experto",
+        "document": "Documento acreditante"
+      }
+    }
+  }
+}
+

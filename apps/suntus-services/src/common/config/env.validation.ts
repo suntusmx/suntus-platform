@@ -15,6 +15,10 @@ const envSchema = z.object({
   // Auth0
   AUTH0_DOMAIN: z.string().optional(),
   AUTH0_AUDIENCE: z.string().optional(),
+  AUTH0_CLIENT_ID: z.string().optional(),
+  AUTH0_CLIENT_SECRET: z.string().optional(),
+  // JWT interno
+  JWT_SECRET: z.string().default('dev-secret-key-change-in-production'),
 });
 
 export type Env = z.infer<typeof envSchema>;

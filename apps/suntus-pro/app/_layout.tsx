@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import '../lib/i18n'; // Inicializar i18n
 
 export default function RootLayout() {
   return (

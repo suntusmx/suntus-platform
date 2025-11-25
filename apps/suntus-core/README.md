@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# suntus-core - Panel de Administración
 
-## Getting Started
+Panel de administración web para gestionar la plataforma suntUS. Construido con Next.js 15.
 
-First, run the development server:
+## Stack Tecnológico
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 15:** Framework React con App Router
+- **Tailwind CSS:** Estilos
+- **Autenticación Local:** Sistema propio (NO Auth0)
+
+## Componentes Clave
+
+### Autenticación
+- **useAuth** (`hooks/useAuth.ts`): Hook para autenticación local
+  - `login({ email, password })`: Login con credenciales
+  - `logout()`: Cierra sesión
+  - `getCurrentUser()`: Obtiene admin actual
+
+- **auth.ts** (`lib/auth.ts`): Servicio de autenticación
+  - Login local contra endpoint `/api/v1/admin/auth/login`
+  - Gestiona tokens JWT en localStorage
+
+- **api.ts** (`lib/api.ts`): Cliente API
+  - Agrega automáticamente token JWT a requests
+  - Lee token de localStorage (`suntus_admin_token`)
+
+### Estructura de Rutas
+
+```
+src/app/
+├── layout.tsx      # Root layout
+├── page.tsx        # Home
+└── dashboard/      # Dashboard admin
+    └── page.tsx
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables de Entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Todas las variables son **OBLIGATORIAS**:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `NEXT_PUBLIC_API_URL`: URL del backend (ej: `http://localhost:7000/api/v1`)
+- `NEXT_PUBLIC_APP_URL`: URL de la app (ej: `http://localhost:7001`)
 
-## Learn More
+## Desarrollo
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Desarrollo
+pnpm dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Build
+pnpm build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Producción
+pnpm start
+```
 
-## Deploy on Vercel
+## Notas Importantes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **NO usa Auth0:** Sistema de autenticación local con `SystemAdmin`
+- **NO tiene i18n:** Solo español (hardcoded)
+- **Puerto:** 7001 (desarrollo)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Endpoints Backend Requeridos
+
+- `POST /api/v1/admin/auth/login` - Login admin
+- `GET /api/v1/admin/auth/me` - Admin actual
+- `POST /api/v1/admin/auth/logout` - Logout

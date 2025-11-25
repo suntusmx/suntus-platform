@@ -260,6 +260,80 @@ pnpm --filter suntus-app web               # Web
 3. Ejecuta `pnpm lint` y `pnpm format`
 4. Crea un Pull Request
 
+## 🔄 Cambios Recientes
+
+### FASE 0.2, 0.3, 0.4 - Configuración Base (Noviembre 2025)
+
+#### Autenticación (FASE 0.4)
+- **Backend (suntus-services):**
+  - Integración con Auth0 para usuarios finales
+  - Sistema de autenticación local para administradores (SystemAdmin)
+  - JWT Strategy con Passport para validación de tokens
+  - Endpoints: `/api/v1/auth/callback`, `/api/v1/auth/me`
+  - Sincronización automática de usuarios Auth0 con base de datos
+
+- **React Native (suntus-app, suntus-pro):**
+  - Integración completa con Auth0 usando `react-native-auth0`
+  - Cliente API con manejo automático de tokens (expo-secure-store)
+  - Hooks de autenticación (`useAuth`) listos para usar
+  - Flujo: Auth0 → Backend callback → Token interno → SecureStore
+
+- **Next.js (suntus-landing):**
+  - Integración con Auth0 usando `@auth0/nextjs-auth0`
+  - Rutas automáticas de Auth0 (`/api/auth/[...auth0]`)
+  - Sincronización con backend después del callback
+
+- **Next.js (suntus-core):**
+  - Sistema de autenticación local (NO Auth0)
+  - Cliente API para login de administradores
+  - Estructura lista para endpoints de admin en backend
+
+#### Internacionalización (FASE 0.3)
+- **Backend:**
+  - i18next configurado con middleware automático
+  - Detección de idioma desde query params, headers o perfil de usuario
+  - Traducciones en `locales/es/` y `locales/en/`
+
+- **React Native:**
+  - i18next con detección automática del idioma del dispositivo
+  - Traducciones para common y auth
+
+- **Next.js (suntus-landing):**
+  - Solución simple de i18n compatible con static export
+
+- **Next.js (suntus-core):**
+  - Sin i18n (solo español, hardcoded)
+
+#### Mejoras de Seguridad
+- **Variables de entorno obligatorias:** Todas las variables de entorno son requeridas (sin valores por defecto)
+- **Validación con Zod:** Todas las variables se validan al inicio de la aplicación
+- **Almacenamiento seguro:** Tokens en SecureStore (mobile) y localStorage (web admin)
+
+#### Documentación
+- **context.md:** Archivos con información crítica de cada proyecto (no en git)
+- **README.md:** Documentación técnica para desarrolladores en cada proyecto
+- **Estrategias:** Documentación de arquitectura y mejores prácticas
+
+#### Estructura de Archivos Clave
+```
+apps/
+├── suntus-services/
+│   ├── src/auth/              # Módulo de autenticación
+│   ├── src/common/i18n/       # Internacionalización
+│   └── context.md            # Info crítica (local)
+├── suntus-app/
+│   ├── lib/                  # Auth0, API, i18n
+│   ├── hooks/useAuth.ts      # Hook principal
+│   └── context.md
+├── suntus-pro/               # Similar a suntus-app
+├── suntus-core/
+│   ├── lib/auth.ts           # Auth local (NO Auth0)
+│   └── context.md
+└── suntus-landing/
+    ├── src/app/api/auth/     # Rutas Auth0
+    └── context.md
+```
+
 ## 📝 Licencia
 
 UNLICENSED - Proyecto privado

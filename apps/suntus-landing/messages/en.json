@@ -1,0 +1,47 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "error": {
+      "generic": "An error occurred",
+      "notFound": "Resource not found",
+      "unauthorized": "Unauthorized",
+      "forbidden": "Access denied",
+      "validation": "Validation error"
+    },
+    "success": {
+      "created": "Successfully created",
+      "updated": "Successfully updated",
+      "deleted": "Successfully deleted"
+    },
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "back": "Back"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot your password?",
+      "errors": {
+        "invalidCredentials": "Invalid credentials",
+        "suspended": "Your account has been suspended"
+      }
+    },
+    "register": {
+      "title": "Sign Up",
+      "personalData": "Personal data",
+      "country": "Country of residence",
+      "expert": {
+        "title": "Register as Expert",
+        "document": "Accreditation document"
+      }
+    }
+  }
+}
+

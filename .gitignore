@@ -109,3 +109,7 @@ ui-debug.log
 *.pem
 *.key
 *.cert
+
+# Context files (not in repo)
+**/context.md
+endcomments.md

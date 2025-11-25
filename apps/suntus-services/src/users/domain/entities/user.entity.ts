@@ -10,6 +10,8 @@ export class User {
     public readonly role: 'user' | 'expert' | 'admin',
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
+    public readonly auth0Id?: string,
+    public readonly language: string = 'es',
   ) {}
 
   /**

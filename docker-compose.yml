@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Docker Compose lee variables de:
 # 1. .env (si existe)
 # 2. .env.docker (si existe)

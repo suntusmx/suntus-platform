@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from './providers';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'suntUS Team' }],
   creator: 'suntUS',
   publisher: 'suntUS',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://suntus.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL!),
   openGraph: {
     type: 'website',
     locale: 'es_ES',
@@ -79,7 +80,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        {/* AuthProvider deshabilitado temporalmente por static export */}
+        {/* <AuthProvider> */}
+          {children}
+        {/* </AuthProvider> */}
       </body>
     </html>
   );

@@ -21,7 +21,7 @@ import { IUserRepository } from './domain/repositories/user.repository.interface
     },
     UserRepository,
   ],
-  exports: [CreateUserUseCase, GetUserUseCase, GetAllUsersUseCase],
+  exports: [CreateUserUseCase, GetUserUseCase, GetAllUsersUseCase, UserRepository],
 })
 export class UsersModule {}
 

@@ -16,12 +16,24 @@ import { StorageModule } from './storage/storage.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { AuditInterceptor } from './audit/common/interceptors/audit.interceptor';
 import { TermsAcceptanceGuard } from './terms/common/guards/terms-acceptance.guard';
+import { I18nModule } from './common/i18n/i18n.module';
+import { I18nMiddleware } from './common/i18n/i18n.middleware';
+import { AuthModule } from './auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     LoggerModule,
     DatabaseModule,
     GraphQLConfigModule,
+    I18nModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET!,
+      signOptions: { expiresIn: '7d' },
+    }),
+    AuthModule,
     UsersModule,
     AuditModule,
     TermsModule,
@@ -55,6 +67,8 @@ import { TermsAcceptanceGuard } from './terms/common/guards/terms-acceptance.gua
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer
+      .apply(RequestIdMiddleware, I18nMiddleware)
+      .forRoutes('*');
   }
 }

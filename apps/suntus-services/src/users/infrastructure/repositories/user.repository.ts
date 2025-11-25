@@ -50,6 +50,51 @@ export class UserRepository implements IUserRepository {
     return prismaUser ? this.toDomain(prismaUser) : null;
   }
 
+  async findByAuth0Id(auth0Id: string): Promise<User | null> {
+    const prismaUser = await this.prisma.user.findUnique({
+      where: { auth0Id },
+    });
+
+    return prismaUser ? this.toDomain(prismaUser) : null;
+  }
+
+  async create(data: {
+    auth0Id?: string;
+    email: string;
+    name: string;
+    role: 'CLIENT' | 'EXPERT';
+    language?: string;
+  }): Promise<User> {
+    const prismaUser = await this.prisma.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        auth0Id: data.auth0Id,
+        language: data.language || 'es',
+      },
+    });
+
+    return this.toDomain(prismaUser);
+  }
+
+  async update(id: string, data: Partial<{
+    auth0Id?: string;
+    name?: string;
+    language?: string;
+  }>): Promise<User> {
+    const prismaUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(data.auth0Id && { auth0Id: data.auth0Id }),
+        ...(data.name && { name: data.name }),
+        ...(data.language && { language: data.language }),
+      },
+    });
+
+    return this.toDomain(prismaUser);
+  }
+
   async findAll(): Promise<User[]> {
     const prismaUsers = await this.prisma.user.findMany();
     return prismaUsers.map((u) => this.toDomain(u));
@@ -69,16 +114,26 @@ export class UserRepository implements IUserRepository {
     email: string;
     name: string;
     role: UserRole;
+    auth0Id?: string | null;
+    language?: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): User {
+    // Mapear UserRole de Prisma a role de dominio
+    const roleMap: Record<UserRole, 'user' | 'expert' | 'admin'> = {
+      CLIENT: 'user',
+      EXPERT: 'expert',
+    };
+
     return new User(
       prismaUser.id,
       prismaUser.email,
       prismaUser.name,
-      prismaUser.role.toLowerCase() as 'user' | 'expert' | 'admin',
+      roleMap[prismaUser.role] || 'user',
       prismaUser.createdAt,
       prismaUser.updatedAt,
+      prismaUser.auth0Id || undefined,
+      prismaUser.language || 'es',
     );
   }
 }

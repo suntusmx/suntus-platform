@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# suntus-landing - Landing Page
 
-## Getting Started
+Landing page pública de suntUS. Construida con Next.js 15 con static export.
 
-First, run the development server:
+## Stack Tecnológico
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 15:** Framework React con App Router
+- **Auth0:** Autenticación de usuarios
+- **Tailwind CSS:** Estilos
+- **Static Export:** Genera sitio estático
+
+## Componentes Clave
+
+### Autenticación
+- **AuthProvider** (`src/app/providers.tsx`): Wrapper de Auth0Provider
+  - Componente cliente que envuelve la app
+  - Proporciona contexto de Auth0
+
+- **useUser** (de `@auth0/nextjs-auth0/client`): Hook para usuario
+  - `user`: Usuario actual
+  - `error`: Errores de autenticación
+  - `isLoading`: Estado de carga
+
+- **Auth Routes** (`src/app/api/auth/[...auth0]/route.ts`):
+  - Maneja `/api/auth/login`, `/api/auth/callback`, `/api/auth/logout`
+  - Sincroniza usuario con backend después del callback
+
+### Internacionalización
+
+- **i18n.ts** (`lib/i18n.ts`): Helper simple para i18n
+- Compatible con static export (no usa next-intl)
+- Traducciones en `messages/es.json` y `messages/en.json`
+
+### Estructura de Rutas
+
+```
+src/app/
+├── layout.tsx              # Root layout
+├── page.tsx                # Home
+├── providers.tsx            # Auth0Provider wrapper
+└── api/auth/[...auth0]/     # Auth0 routes
+    └── route.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables de Entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Todas las variables son **OBLIGATORIAS**:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `AUTH0_SECRET`: Secret para cookies de Auth0
+- `AUTH0_BASE_URL`: URL de la app (ej: `http://localhost:7002`)
+- `AUTH0_ISSUER_BASE_URL`: Dominio de Auth0
+- `AUTH0_CLIENT_ID`: Client ID de Auth0
+- `AUTH0_CLIENT_SECRET`: Client Secret de Auth0
+- `AUTH0_AUDIENCE`: Audience de Auth0
+- `NEXT_PUBLIC_API_URL`: URL del backend
+- `NEXT_PUBLIC_APP_URL`: URL de la app
 
-## Learn More
+## Desarrollo
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Desarrollo
+pnpm dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Build (static)
+pnpm build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Preview build
+pnpm start
+```
 
-## Deploy on Vercel
+## Notas Importantes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Static Export:** La app se genera como sitio estático
+- **Auth0:** Maneja sesión con cookies (no localStorage)
+- **Puerto:** 7002 (desarrollo)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Uso de Auth0
+
+```tsx
+'use client';
+import { useUser } from '@auth0/nextjs-auth0/client';
+
+export default function Profile() {
+  const { user, isLoading } = useUser();
+  
+  if (isLoading) return <div>Cargando...</div>;
+  if (!user) return <a href="/api/auth/login">Login</a>;
+  
+  return <div>Hola, {user.name}</div>;
+}
+```
