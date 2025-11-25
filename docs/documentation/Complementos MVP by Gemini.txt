@@ -1,0 +1,33 @@
+Manifiesto Estratégico: suntUS Platform (MVP)
+Objetivo: Crear el "Hub Central" del Fitness. No es una simple app de gestión, es un Marketplace de Servicios de Salud y Fitness con herramientas de productividad y retención masiva.
+A continuación se describen los Pilares de Negocio que la arquitectura debe resolver por sí misma. Tú decides la implementación técnica, pero estas reglas son inquebrantables.
+1. El Modelo de Negocio: "Hub & Monetización"
+•	Centralización Financiera: Todo pago ocurre DENTRO de la plataforma. El usuario paga a Suntus, no al experto. Suntus dispersa los fondos.
+•	Estrategia "Pay-Per-Seat": Cobramos una renta fija por cada usuario activo que tenga el experto.
+•	Incentivo de Crecimiento (La Beca del 6to): El sistema debe ser capaz de detectar volumen. Si un experto trae 5 usuarios pagando, el 6to slot no genera comisión para Suntus (es ingreso neto para el experto).
+•	Split de Pagos: El sistema debe automatizar la resta de nuestra comisión antes de que el dinero llegue al experto.
+2. El Ecosistema de Expertos: "Calidad y Meritocracia"
+•	Onboarding con Filtro (El Cadenero): El registro es libre, pero la "Visibilidad" se gana. El experto debe subir documentos probatorios (INE, Cédula).
+•	Ranking Dinámico: El orden en que aparecen los expertos en el buscador no es alfabético. Se basa en:
+1.	Verificación (Documentos aprobados por Admin).
+2.	Reputación (Calificación de usuarios).
+3.	Volumen de Ventas (Éxito comercial).
+•	Shadowban: Si no están verificados, existen en la plataforma pero están "escondidos" al final del ranking.
+3. La Propiedad del Dato: "El Cardex Médico Deportivo"
+•	Usuario-Céntrico: La información clínica (mediciones, lesiones, historial, fotos de progreso) PERTENECE al Usuario Final, no al Experto.
+•	Portabilidad: Si un usuario cambia de experto, su historial viaja con él. El nuevo experto hereda la visión del historial completo.
+•	Auditoría: Cada nota médica o plan debe llevar la firma de QUÍEN la creó. Si el Experto anterior hizo una tontería, debe quedar registrado que fue él, no el sistema ni el nuevo experto.
+4. Productividad del Experto: "Adiós al Texto Plano"
+Queremos que el experto use la app por velocidad, no por obligación.
+•	Constructor de Rutinas (No Escribir): El sistema debe permitir armar rutinas seleccionando bloques pre-existentes (Ejercicios) y parámetros (Series/Reps), evitando la escritura manual.
+•	Plantillas y Clonación: La arquitectura debe permitir guardar "Semana Tipo" y replicarla en N usuarios con un clic.
+•	Mago Nutricional (Equivalencias): El experto dicta "macros" o "equivalentes" (ej. 2 Proteínas), y el sistema debe sugerir platos reales (Recetas) al usuario final.
+5. La "Fitoteca": Autoridad y Comunidad
+•	Fuente de Verdad: Un repositorio de conocimientos (Artículos, Wikis) alimentado por los expertos.
+•	Reputación: La participación en la Fitoteca (escribir artículos buenos) debe sumar puntos al "Ranking de Búsqueda" del experto.
+•	Contenido Híbrido: Existen Ejercicios de Sistema (Alta Calidad, creados por Suntus) y Ejercicios de Experto (Creados por ellos). Ambos conviven pero se distinguen visualmente.
+6. Internacionalización (Global Ready)
+•	Multilenguaje Nativo: La plataforma nace lista para operar en Inglés y Español simultáneamente. Esto aplica a la interfaz Y al contenido base (nombres de ejercicios, categorías, países).
+________________________________________
+Instrucción para la IA: Analiza estas reglas de negocio y diseña la arquitectura de backend, base de datos y flujos de usuario necesarios para cumplirlas. Prioriza la escalabilidad y la seguridad de los datos sensibles (PII).
+
