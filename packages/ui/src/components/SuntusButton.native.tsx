@@ -1,9 +1,4 @@
 import { Text, TouchableOpacity, type TouchableOpacityProps } from 'react-native';
-import { cssInterop } from 'nativewind';
-
-// Configurar cssInterop para TouchableOpacity y Text (requerido en NativeWind v4)
-cssInterop(TouchableOpacity, { className: 'style' });
-cssInterop(Text, { className: 'style' });
 
 export interface SuntusButtonProps extends Omit<TouchableOpacityProps, 'className'> {
   title: string;
@@ -13,8 +8,8 @@ export interface SuntusButtonProps extends Omit<TouchableOpacityProps, 'classNam
 }
 
 /**
- * Componente SuntusButton compartido usando NativeWind v4
- * Funciona en React Native y Next.js (con react-native-web)
+ * Componente SuntusButton compartido usando NativeWind v4 (React Native)
+ * cssInterop se configura en packages/ui/src/index.ts
  */
 export function SuntusButton({
   title,
@@ -28,11 +23,11 @@ export function SuntusButton({
   // Clases base
   const baseClasses = 'rounded-lg font-semibold items-center justify-center';
   
-  // Variantes de color
+  // Variantes de color - Usando variables semánticas
   const variantClasses = {
-    primary: 'bg-blue-500 active:bg-blue-600',
-    secondary: 'bg-gray-200 active:bg-gray-300',
-    outline: 'border-2 border-blue-500 bg-transparent active:bg-blue-50',
+    primary: 'bg-primary active:opacity-90',
+    secondary: 'bg-card dark:bg-card active:opacity-90',
+    outline: 'border-2 border-primary bg-transparent active:bg-primary/10',
   };
   
   // Tamaños
@@ -45,11 +40,11 @@ export function SuntusButton({
   // Estados
   const disabledClasses = disabled ? 'opacity-50' : '';
   
-  // Colores de texto
+  // Colores de texto - Usando variables semánticas
   const textColorClasses = {
-    primary: 'text-white',
-    secondary: 'text-gray-900',
-    outline: 'text-blue-500',
+    primary: 'text-primary-foreground',
+    secondary: 'text-card-foreground',
+    outline: 'text-primary',
   };
   
   // Tamaños de texto
@@ -76,4 +71,3 @@ export function SuntusButton({
     </TouchableOpacity>
   );
 }
-

@@ -1,30 +1,16 @@
 /** @type {import('tailwindcss').Config} */
-// suntus-core usa Tailwind v3 (homologado con el resto del monorepo)
-// NO usa el preset de NativeWind porque es una app web pura
 module.exports = {
+  // 1. CONTENT: ¡Crucial! Escanea la app web Y la librería UI
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
+    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}" // <--- SIN ESTO, TODO ES BLANCO
   ],
+  // 2. PRESET: Usa el mismo de NativeWind para compatibilidad de tokens
+  presets: [require("nativewind/preset")],
+  // 3. DARK MODE: Habilitar cambio manual del tema
+  darkMode: 'class',
   theme: {
-    extend: {
-      // Tokens de diseño de suntUS (copiados desde packages/ui)
-      colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-        },
-      },
-    },
+    extend: {},
   },
   plugins: [],
 };
-

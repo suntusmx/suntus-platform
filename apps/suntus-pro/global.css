@@ -1,3 +1,6 @@
 /* Importar estilos globales desde packages/ui */
-@import '../../packages/ui/src/styles/global.css';
+/* Ruta relativa a prueba de balas (sin alias para evitar problemas con Metro) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 

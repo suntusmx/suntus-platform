@@ -13,13 +13,15 @@ const nextConfig: NextConfig = {
     };
 
     // Asegurar que react-native-web se resuelva correctamente
+    // IMPORTANTE: Las extensiones .web.* deben estar ANTES de las extensiones normales
+    // para que Webpack priorice los archivos .web.tsx en web
     const existingExtensions = config.resolve.extensions || [];
     config.resolve.extensions = [
       '.web.js',
       '.web.jsx',
       '.web.ts',
       '.web.tsx',
-      ...existingExtensions,
+      ...existingExtensions.filter((ext: string) => !ext.startsWith('.web')),
     ];
 
     return config;

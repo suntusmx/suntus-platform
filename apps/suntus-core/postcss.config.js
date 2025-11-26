@@ -1,7 +1,6 @@
 module.exports = {
   plugins: {
     tailwindcss: {},
-    autoprefixer: {},
+    autoprefixer: {}, // <--- ESTE ES EL QUE HACE QUE EL CSS SEA COMPATIBLE
   },
 };
-

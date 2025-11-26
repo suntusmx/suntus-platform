@@ -6,8 +6,10 @@ module.exports = function (api) {
       "nativewind/babel",
     ],
     plugins: [
-      // Quitamos el alias manual de worklets porque ya lo hicimos físico con pnpm
-      "react-native-reanimated/plugin", 
+      // react-native-worklets-core/plugin debe ir antes de reanimated
+      'react-native-worklets-core/plugin',
+      // react-native-reanimated/plugin debe ser el último plugin
+      'react-native-reanimated/plugin',
     ],
   };
 };

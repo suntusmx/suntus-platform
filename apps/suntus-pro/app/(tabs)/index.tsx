@@ -1,17 +1,24 @@
 import { View, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { SuntusButton } from '@suntus/ui'; // Importar el SuntusButton compartido
+import { SuntusButton, ThemeToggle, useSuntusTheme } from '@suntus/ui';
 
 export default function DashboardScreen() {
-  return (
-    <View className="flex-1 bg-white items-center justify-center p-5">
-      <Text className="text-2xl font-bold mb-2">Dashboard de Experto</Text>
-      <Text className="text-base text-gray-600 mb-8">Gestiona tus clientes y planes</Text>
+  const { isDark } = useSuntusTheme();
 
-      {/* Test: SuntusButton compartido desde @suntus/ui - Debe verse azul (bg-blue-500) */}
+  return (
+    <View className="flex-1 bg-background items-center justify-center p-5">
+      {/* Toggle de tema en la esquina superior */}
+      <View className="absolute top-12 right-5 z-10">
+        <ThemeToggle />
+      </View>
+
+      <Text className="text-2xl font-bold mb-2 text-foreground">Dashboard de Experto</Text>
+      <Text className="text-base text-foreground/70 mb-8">Gestiona tus clientes y planes</Text>
+
+      {/* Test: SuntusButton compartido desde @suntus/ui - Debe verse verde menta (#18CB96) */}
       <View className="gap-4 w-full max-w-xs">
         <SuntusButton
-          title="Botón Primary (Azul)"
+          title="Botón Primary (Verde Menta)"
           onPress={() => console.log('SuntusButton Primary funciona!')}
           variant="primary"
         />
@@ -27,7 +34,7 @@ export default function DashboardScreen() {
         />
       </View>
 
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? "light" : "auto"} />
     </View>
   );
 }
