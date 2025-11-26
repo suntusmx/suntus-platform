@@ -4,12 +4,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Configuración de seed
-seed {
-  provider = "ts-node"
-  path     = "./seed.ts"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -149,50 +143,55 @@ model State {
   id          String   @id @default(uuid())
   countryCode String
   name        Json     // {"es": "Ciudad de México", "en": "Mexico City"}
-  code        String?  // Código del estado
+  code        String?  // Código del estado (ej: "CDMX", "JAL")
   createdAt   DateTime @default(now())
 
   country     Country  @relation(fields: [countryCode], references: [code])
-  cities      City[]
+  municipalities Municipality[] // Municipios pertenecen directamente a estados
 
   @@index([countryCode])
   @@map("states")
 }
 
-model City {
+model Municipality {
   id        String   @id @default(uuid())
-  stateId   String
-  name      Json     // {"es": "Ciudad de México", "en": "Mexico City"}
+  stateId   String   // FK a State (municipios pertenecen a estados)
+  name      Json     // {"es": "Guadalajara", "en": "Guadalajara"}
+  code      String?  // Código del municipio (opcional)
   createdAt DateTime @default(now())
 
   state     State    @relation(fields: [stateId], references: [id])
-  municipalities Municipality[]
-
-  @@index([stateId])
-  @@map("cities")
-}
-
-model Municipality {
-  id        String   @id @default(uuid())
-  cityId    String
-  name      Json
-  createdAt DateTime @default(now())
-
-  city      City     @relation(fields: [cityId], references: [id])
+  cities    City[]   // Ciudades/localidades dentro del municipio
   postalCodes PostalCode[]
 
-  @@index([cityId])
+  @@index([stateId])
   @@map("municipalities")
+}
+
+model City {
+  id            String   @id @default(uuid())
+  municipalityId String // FK a Municipality (ciudades/localidades pertenecen a municipios)
+  name          Json     // {"es": "Centro", "en": "Downtown"}
+  createdAt     DateTime @default(now())
+
+  municipality  Municipality @relation(fields: [municipalityId], references: [id])
+  postalCodes   PostalCode[]
+
+  @@index([municipalityId])
+  @@map("cities")
 }
 
 model PostalCode {
   code          String   @id
-  municipalityId String
+  municipalityId String? // Opcional: puede pertenecer a municipio
+  cityId        String?  // Opcional: puede pertenecer a ciudad
   createdAt     DateTime @default(now())
 
-  municipality  Municipality @relation(fields: [municipalityId], references: [id])
+  municipality  Municipality? @relation(fields: [municipalityId], references: [id])
+  city          City? @relation(fields: [cityId], references: [id])
 
   @@index([municipalityId])
+  @@index([cityId])
   @@map("postal_codes")
 }
 

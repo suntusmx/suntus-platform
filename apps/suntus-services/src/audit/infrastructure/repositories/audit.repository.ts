@@ -17,10 +17,10 @@ export class AuditRepository {
         actorType: data.actorType as any, // Prisma enum se valida en runtime
         actorName: data.actorName,
         actorEmail: data.actorEmail,
-        snapshot: data.snapshot as Prisma.InputJsonValue,
+        snapshot: data.snapshot as any, // Prisma JsonValue type
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
-        metadata: data.metadata as Prisma.InputJsonValue,
+        metadata: data.metadata as any, // Prisma JsonValue type
       },
     });
   }

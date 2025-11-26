@@ -89,7 +89,71 @@ export class AuthService {
       auth0Id: user.auth0Id,
     };
 
-    return this.jwtService.sign(payload);
+    const expiresIn = this.configService.get('JWT_EXPIRES_IN', { infer: true });
+
+    return this.jwtService.sign(payload, {
+      expiresIn: expiresIn as string,
+    } as any);
+  }
+
+  /**
+   * Genera un refresh token para el usuario
+   * @param user - Usuario para el cual generar el refresh token
+   * @returns Refresh token JWT firmado con JWT_REFRESH_SECRET
+   */
+  async generateRefreshToken(user: any): Promise<string> {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      type: 'refresh',
+    };
+
+    const refreshSecret = this.configService.get('JWT_REFRESH_SECRET', { infer: true }) as string;
+    const expiresIn = this.configService.get('JWT_REFRESH_EXPIRES_IN', { infer: true });
+
+    return this.jwtService.sign(payload, {
+      secret: refreshSecret,
+      expiresIn: expiresIn as string,
+    } as any);
+  }
+
+  /**
+   * Valida un refresh token y genera un nuevo access token
+   * @param refreshToken - Refresh token a validar
+   * @returns Nuevo access token y refresh token
+   */
+  async refreshAccessToken(refreshToken: string): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    try {
+      const refreshSecret = this.configService.get('JWT_REFRESH_SECRET', { infer: true });
+      const decoded = this.jwtService.verify(refreshToken, {
+        secret: refreshSecret,
+      });
+
+      // Verificar que sea un refresh token
+      if (decoded.type !== 'refresh') {
+        throw new UnauthorizedException('Token inválido');
+      }
+
+      // Buscar usuario
+      const user = await this.userRepository.findById(decoded.sub);
+      if (!user) {
+        throw new UnauthorizedException('Usuario no encontrado');
+      }
+
+      // Generar nuevos tokens
+      const accessToken = await this.generateInternalToken(user);
+      const newRefreshToken = await this.generateRefreshToken(user);
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Refresh token inválido o expirado');
+    }
   }
 }
 

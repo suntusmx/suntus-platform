@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import './env.validation'; // Valida variables de entorno al importar
 
 /**
  * Cliente API para suntus-app

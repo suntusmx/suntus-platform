@@ -84,8 +84,8 @@ export class TermsService {
 
   async publishNewVersion(
     version: string,
-    title: Prisma.InputJsonValue,
-    content: Prisma.InputJsonValue,
+    title: any, // Prisma JsonValue type
+    content: any, // Prisma JsonValue type
     adminId: string,
     adminName: string,
   ) {

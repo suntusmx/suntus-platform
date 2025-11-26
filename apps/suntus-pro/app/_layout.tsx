@@ -1,3 +1,4 @@
+import '../global.css'; // Importar estilos globales (ruta relativa a prueba de balas)
 import { Stack } from 'expo-router';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import '../lib/i18n'; // Inicializar i18n

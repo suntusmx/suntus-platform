@@ -1,8 +1,18 @@
+'use client';
+
 import Image from "next/image";
+import { Button } from '@suntus/ui';
 
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      {/* Smoke Test: Button compartido desde @suntus/ui (funciona con react-native-web) */}
+      <div className="mb-8 absolute top-8">
+        <Button 
+          title="Test Button desde @suntus/ui" 
+          onPress={() => alert('Button funciona!')} 
+        />
+      </div>
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <Image
           className="dark:invert"

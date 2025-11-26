@@ -3,6 +3,9 @@
     "version": "0.0.0",
     "main": "index.js",
     "license": "MIT",
+    "scripts": {
+        "dev": "echo 'No dev script needed for config package'"
+    },
     "dependencies": {
         "eslint": "^9.18.0",
         "eslint-config-next": "^15.1.6",

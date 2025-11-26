@@ -235,33 +235,33 @@ Portal Fitoteca (Independiente)
   - Campo `verificationStatus` (PENDING, VALIDATED, REJECTED)
   - **IMPORTANTE:** La validación NO es bloqueante. Expertos no validados pueden dar servicio pero tienen ranking bajo
   - **SEGURIDAD:** Documentos almacenados en bucket privado de GCS, solo accesible por `suntus-admin`
-- [ ] **Catálogo de Ubicaciones Geográficas** (CRÍTICO)
-  - **Usar paquete `countries-list`** (https://github.com/annexare/Countries):
-    - Proporciona datos completos de países (ISO 3166-1 alpha-2/alpha-3)
-    - Nombres nativos, capitales, monedas, códigos de llamada
-    - Continentes, idiomas (ISO 639-1)
-    - Datos en JSON, CSV y SQL
+- [x] **Catálogo de Ubicaciones Geográficas** (CRÍTICO) ✅
+  - **Estructura ajustada para México:**
+    - Country → State → Municipality → City → PostalCode
+    - Municipios pertenecen directamente a estados (no a ciudades)
   - Tabla `countries`:
     - `code` (ISO 3166-1 alpha-2): PK
     - `name` (JSONB): `{"es": "México", "en": "Mexico", "native": "México"}`
-    - `capital`, `currency`, `phone`, `continent` (del paquete)
-  - Tabla `states` (estados/provincias):
+    - `capital`, `currency`, `phone`, `continent`
+  - Tabla `states` (estados):
     - `id`: PK
     - `countryCode`: FK a countries
-    - `name` (JSONB): `{"es": "Ciudad de México", "en": "Mexico City"}`
-  - Tabla `cities` (ciudades):
-    - `id`: PK
-    - `stateId`: FK a states
-    - `name` (JSONB): `{"es": "Ciudad de México", "en": "Mexico City"}`
+    - `name` (JSONB): `{"es": "Jalisco", "en": "Jalisco"}`
+    - `code`: Código del estado (ej: "JAL", "CDMX")
   - Tabla `municipalities` (municipios):
     - `id`: PK
-    - `cityId`: FK a cities
-    - `name` (JSONB)
+    - `stateId`: FK a states (municipios pertenecen a estados)
+    - `name` (JSONB): `{"es": "Guadalajara", "en": "Guadalajara"}`
+  - Tabla `cities` (ciudades/localidades):
+    - `id`: PK
+    - `municipalityId`: FK a municipalities (ciudades pertenecen a municipios)
+    - `name` (JSONB): `{"es": "Centro", "en": "Downtown"}`
   - Tabla `postal_codes` (códigos postales):
     - `code`: PK
-    - `municipalityId`: FK a municipalities
-  - **Script de migración:** Importar datos de `countries-list` + datos específicos de México
-  - [x] Script de seed creado (`prisma/seed.ts`) con `countries-list`
+    - `municipalityId`: FK a municipalities (opcional)
+    - `cityId`: FK a cities (opcional)
+  - **Script de seed:** `seed-mexico.ts` consume API de ubicaciones
+  - ✅ **Datos cargados:** México completo (32 estados, 2,478 municipios, 151,480 ciudades, 156,192 códigos postales)
 - [x] **Sistema de Auditoría Immutable (CRÍTICO):**
   - Tabla `auditLog` (APPEND ONLY - nunca se borra ni edita):
     - `id`: PK (UUID)
@@ -440,29 +440,73 @@ Portal Fitoteca (Independiente)
     - Para matching: macros objetivo → recetas sugeridas
 
 #### 0.3 Sistema de Internacionalización (i18n)
-- [ ] Setup de i18next en backend
-- [ ] Setup de i18next en frontend (React Native y Next.js)
-- [ ] Estructura de archivos de traducción (es/en)
-- [ ] Namespaces: `common`, `auth`, `profile`, `subscription`, `nutrition`, `sports`, `billing`
-- [ ] Detección automática de idioma del dispositivo/navegador
-- [ ] Fallback a español
-- [ ] **Estrategia de i18n en Base de Datos:**
+- [x] Setup de i18next en backend
+  - `I18nModule` y `I18nService` implementados
+  - `I18nMiddleware` para detección automática de idioma
+  - Archivos de traducción en `apps/suntus-services/locales/{{lng}}/{{ns}}.json`
+- [x] Setup de i18next en frontend (React Native)
+  - `suntus-app`: i18next con `expo-localization` configurado
+  - `suntus-pro`: i18next con `expo-localization` configurado
+  - Integración en `_layout.tsx` de Expo Router
+- [x] Setup de i18n en Next.js
+  - `suntus-landing`: Solución simple de i18n para static export (`lib/i18n.ts`)
+  - `suntus-core`: **NO tiene i18n** (siempre en español según requerimiento)
+- [x] Estructura de archivos de traducción (es/en)
+  - Backend: `locales/es/common.json`, `locales/en/common.json`, `locales/es/auth.json`, `locales/en/auth.json`
+  - Apps móviles: `locales/es/common.json`, `locales/en/common.json`, `locales/es/auth.json`, `locales/en/auth.json`
+  - Landing: `messages/es.json`, `messages/en.json`
+- [x] Namespaces: `common`, `auth`, `profile`, `subscription`, `nutrition`, `sports`, `billing`, `metrics`, `help`, `fitoteca`, `directory`, `plans`, `admin`
+- [x] Detección automática de idioma del dispositivo/navegador
+  - Backend: Desde query params, `Accept-Language` header o perfil de usuario
+  - Apps móviles: `expo-localization` detecta idioma del dispositivo
+  - Landing: `localStorage` o detección del navegador
+- [x] Fallback a español
+  - Configurado en todos los proyectos (backend, apps móviles, landing)
+- [x] **Estrategia de i18n en Base de Datos:**
   - Usar **JSONB** para campos traducibles: `{"es": "Texto", "en": "Text"}`
   - Campos que usan JSONB:
     - `exercises.name`, `exercises.description`
     - `countries.name`, `states.name`, `cities.name`
     - `nutritionPlans.recipes` (recetas)
     - `fitotecaEntries.content`
-  - Función helper en backend: `getTranslatedField(field: JSONB, lang: 'es' | 'en')`
-  - Validación con Zod: Schema que valida estructura JSONB de traducciones
+  - Función helper en backend: `getTranslatedField(field: JSONB, lang: 'es' | 'en')` ✅
+  - Validación con Zod: Schema que valida estructura JSONB de traducciones ✅
 
-#### 0.4 Autenticación Base (Auth0)
-- [ ] Configuración de Auth0
-- [ ] Integración en backend (NestJS)
-- [ ] Middleware de autenticación
-- [ ] Sistema de roles (user, expert, admin)
-- [ ] Guards de autorización
-- [ ] Refresh tokens
+#### 0.4 Autenticación Base (Auth0 y Local)
+- [x] Configuración de Auth0
+  - Variables de entorno normalizadas en todos los proyectos
+  - Documentación de configuración creada (`AUTH0_CONFIGURACION.md`)
+- [x] Integración en backend (NestJS)
+  - `AuthModule` con `AuthService` y `JwtStrategy` implementados
+  - Endpoint `/api/v1/auth/callback` para recibir tokens de Auth0 y generar JWT interno
+  - Endpoint `/api/v1/auth/me` para obtener perfil del usuario autenticado
+  - Sincronización de usuarios desde Auth0 a base de datos (modelo `User` con `auth0Id`)
+- [x] Integración en apps móviles (React Native)
+  - `suntus-app`: `lib/auth0.ts`, `lib/auth.ts` con funciones `login`, `logout`, `getCurrentUser`, `checkAuth`
+  - `suntus-pro`: `lib/auth0.ts`, `lib/auth.ts` con funciones `login`, `logout`, `getCurrentUser`, `checkAuth`
+  - Uso de `react-native-auth0` y `expo-secure-store` para almacenamiento seguro de tokens
+- [x] Integración en landing page (Next.js)
+  - `suntus-landing`: `AuthProvider` con `@auth0/nextjs-auth0/client`
+  - **Nota:** Rutas de API de Auth0 comentadas debido a incompatibilidad con static export
+- [x] Autenticación local para administradores (suntus-core)
+  - **NO usa Auth0** (según `plan-desarrollo-mvp.md`)
+  - `lib/auth.ts` y `lib/api.ts` configurados para autenticación local con `SystemAdmin`
+  - Endpoints esperados: `/admin/auth/login`, `/admin/auth/me`
+- [x] Middleware de autenticación
+  - `JwtAuthGuard` global implementado
+  - Decorador `@Public()` para rutas públicas
+  - Decorador `@CurrentUser()` para inyectar usuario autenticado
+- [x] Sistema de roles (user, expert, admin)
+  - Modelo `User` con `role`: CLIENT, EXPERT
+  - Modelo `SystemAdmin` con `role`: SUPER_ADMIN, SUPPORT
+  - JWT incluye `role` en el payload
+- [x] Guards de autorización
+  - `JwtAuthGuard` para validar tokens JWT internos
+  - Soporte para rutas públicas con decorador `@Public()`
+- [x] Refresh tokens
+  - Implementado: `generateRefreshToken()`, `refreshAccessToken()`
+  - Endpoint `/api/v1/auth/refresh` disponible
+  - Variables ENV: `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`
 
 #### 0.6 Sistema de Auditoría y Términos (CRÍTICO)
 - [x] Implementar `AuditService` con métodos para:
@@ -525,14 +569,32 @@ Portal Fitoteca (Independiente)
 - [x] Monorepo funcional
 - [x] Base de datos con esquemas base (Schema Prisma completo con todos los modelos)
 - [x] **Script de seed para países** (usando `countries-list`)
-- [ ] **Catálogo de ubicaciones poblado** (requiere migración inicial de BD)
-- [ ] **i18n configurado** (es/en) con JSONB en BD
-- [ ] Auth0 funcionando
+- [x] **Catálogo de ubicaciones poblado** ✅
+  - México: 32 estados, 2,478 municipios, 151,480 ciudades/localidades, 156,192 códigos postales
+  - Script `seed-mexico.ts` consume API de ubicaciones (`http://localhost:4000/api/locations/hierarchy`)
+  - Estructura: Country → State → Municipality → City → PostalCode
+- [x] **i18n configurado** (es/en)
+  - Backend: i18next con `i18next-fs-backend` funcionando
+  - Apps móviles: i18next con `expo-localization` funcionando
+  - Landing: Solución simple de i18n para static export
+  - Core: Sin i18n (siempre en español)
+  - ✅ Helper para JSONB en base de datos (`getTranslatedField()`)
+  - ✅ Schema Zod para validación de campos traducibles (`TranslatedFieldSchema`)
+- [x] **Auth0 funcionando**
+  - Backend: `AuthModule`, `AuthService`, `JwtStrategy` implementados
+  - Apps móviles: Integración completa con `react-native-auth0`
+  - Landing: Integración con `@auth0/nextjs-auth0` (nota: API routes no compatibles con static export)
+  - Core: Autenticación local (NO Auth0) configurada
+  - ✅ Refresh tokens implementados (`JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`)
 - [x] **Buckets de GCS configurados** (público y privado con seguridad) - `StorageService` implementado
 - [x] **Sistema de Auditoría funcionando** (AuditLog append-only) - `AuditService`, `AuditInterceptor`, `AuditModule`
 - [x] **Sistema de Términos y Condiciones** (versionado y tracking) - `TermsService`, `TermsAcceptanceGuard`, `TermsModule`
 - [x] **App Blocker** implementado (bloquea si no acepta T&C) - `TermsAcceptanceGuard`
 - [x] **Cron Jobs configurados** - `SchedulerModule` con jobs T+7, Payouts, Escrow
+- [x] **Validación estricta de variables de entorno** ✅
+  - Backend: Zod schema sin defaults (falla si falta variable crítica)
+  - Frontends: Schemas Zod para validación en `suntus-app`, `suntus-pro`, `suntus-core`, `suntus-landing`
+  - Variables nuevas: `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`
 
 ---
 
@@ -1865,18 +1927,32 @@ async getExpertDocuments(@Param('id') expertId: string) {
 
 ## 8. Checklist de Validación por Fase
 
-### FASE 0 ✅
+### FASE 0 ✅ COMPLETADA
 - [x] Monorepo funcional
 - [x] Base de datos con esquemas base (Schema Prisma completo)
 - [x] Script de seed para países (countries-list)
-- [ ] Base de datos con ubicaciones (requiere migración inicial)
-- [ ] i18n configurado (es/en)
-- [ ] Auth0 funcionando
+- [x] Base de datos con ubicaciones ✅ (México completo cargado: 32 estados, 2,478 municipios, 151,480 ciudades, 156,192 códigos postales)
+- [x] **i18n configurado (es/en)**
+  - [x] Backend: i18next con `i18next-fs-backend` funcionando
+  - [x] Apps móviles: i18next con `expo-localization` funcionando
+  - [x] Landing: Solución simple de i18n para static export
+  - [x] Core: Sin i18n (siempre en español)
+  - [x] Helper para JSONB en base de datos ✅ (`getTranslatedField()`)
+  - [x] Schema Zod para validación de campos traducibles ✅ (`TranslatedFieldSchema`)
+- [x] **Auth0 funcionando**
+  - [x] Backend: `AuthModule`, `AuthService`, `JwtStrategy` implementados
+  - [x] Apps móviles: Integración completa con `react-native-auth0`
+  - [x] Landing: Integración con `@auth0/nextjs-auth0` (nota: API routes no compatibles con static export)
+  - [x] Core: Autenticación local (NO Auth0) configurada
+  - [x] Refresh tokens implementados ✅ (`JWT_REFRESH_SECRET`, endpoints `/auth/refresh`)
 - [x] **Sistema de Auditoría funcionando** (AuditLog append-only)
 - [x] **Sistema de Términos y Condiciones** (versionado y tracking)
 - [x] **App Blocker** implementado
 - [x] **Almacenamiento de Archivos (GCS)** configurado
 - [x] **Cron Jobs** configurados (T+7, Payouts, Escrow)
+- [x] **Validación de variables de entorno con Zod** ✅ (sin defaults, falla si falta variable crítica)
+  - [x] Backend: `env.validation.ts` con validación estricta
+  - [x] Frontends: Schemas Zod para `suntus-app`, `suntus-pro`, `suntus-core`, `suntus-landing`
 
 ### FASE 1 ✅
 - [ ] Usuario puede registrarse con país
@@ -3279,4 +3355,5 @@ async getTermsAcceptances(version: string) {
 
 **Última actualización:** Diciembre 2024  
 **Mantenedor:** Equipo de Desarrollo suntUS
+
 

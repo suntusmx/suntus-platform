@@ -96,6 +96,8 @@ pnpm --filter suntus-pro dev
 
 ## 🔐 Variables de Entorno
 
+**IMPORTANTE:** Todas las aplicaciones usan validación estricta con Zod. Si falta una variable obligatoria, la aplicación fallará al iniciar (sin defaults silenciosos).
+
 ### Backend (suntus-services)
 
 Crea un archivo `.env` en `apps/suntus-services/` con las siguientes variables **OBLIGATORIAS**:
@@ -106,7 +108,28 @@ PORT=7000
 DATABASE_URL=postgresql://suntus:suntus_dev@localhost:5432/suntus_db
 CORS_ORIGIN=*
 LOG_LEVEL=info
-REDIS_URL=redis://localhost:6380  # Opcional
+
+# JWT (OBLIGATORIAS - sin defaults)
+JWT_SECRET=tu-secret-key-minimo-32-caracteres-muy-seguro
+JWT_REFRESH_SECRET=tu-refresh-secret-key-diferente-minimo-32-caracteres
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Auth0 (OBLIGATORIAS)
+AUTH0_DOMAIN=https://tu-tenant.auth0.com
+AUTH0_AUDIENCE=https://api.suntus.com
+AUTH0_CLIENT_ID=tu-client-id
+AUTH0_CLIENT_SECRET=tu-client-secret
+
+# Google Cloud Storage (OBLIGATORIAS)
+GCS_PROJECT_ID=tu-project-id
+GCS_KEY_FILENAME=./path/to/service-account.json
+GCS_PUBLIC_BUCKET=suntus-public
+GCS_PRIVATE_BUCKET=suntus-private
+
+# Opcionales
+REDIS_URL=redis://localhost:6380
+LOCATIONS_API_URL=http://localhost:4000/api/locations/hierarchy
 ```
 
 **⚠️ Importante:** Si falta alguna variable obligatoria, la aplicación lanzará un error al iniciar.
@@ -333,6 +356,33 @@ apps/
     ├── src/app/api/auth/     # Rutas Auth0
     └── context.md
 ```
+
+## 📝 Cambios Recientes - FASE 0 Completada
+
+### Validación de Variables de Entorno
+- ✅ **Validación estricta con Zod** en todos los proyectos (backend y frontends)
+- ✅ **Sin valores por defecto** - La aplicación falla si falta una variable crítica
+- ✅ **Schemas Zod** para `suntus-app`, `suntus-pro`, `suntus-core`, `suntus-landing`
+- ✅ **Nuevas variables:** `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`
+
+### Sistema de Refresh Tokens
+- ✅ **Refresh tokens implementados** en backend (`AuthService.refreshAccessToken()`)
+- ✅ **Endpoint `/auth/refresh`** para renovar tokens sin re-autenticación
+- ✅ **Separación de secretos:** `JWT_SECRET` (access) y `JWT_REFRESH_SECRET` (refresh)
+
+### Catálogo de Ubicaciones
+- ✅ **Seed de México completo** (`prisma/seed-mexico.ts`)
+- ✅ **Estructura ajustada:** Country → State → Municipality → City → PostalCode
+- ✅ **Datos cargados:** 32 estados, 2,478 municipios, 151,480 ciudades, 156,192 códigos postales
+- ✅ **Consume API externa** de ubicaciones para poblar datos
+
+### Schemas Zod para i18n
+- ✅ **`TranslatedFieldSchema`** en `@suntus/core` para validar campos JSONB traducibles
+- ✅ **Helper `validateTranslatedField()`** para validación de campos multiidioma
+
+### Documentación
+- ✅ **`context.md` actualizado** en `suntus-services` con información crítica
+- ✅ **Plan de desarrollo actualizado** - FASE 0 marcada como completada
 
 ## 📝 Licencia
 

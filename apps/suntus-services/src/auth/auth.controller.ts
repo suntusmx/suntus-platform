@@ -29,11 +29,13 @@ export class AuthController {
       picture: auth0User.picture,
     });
 
-    // Generar token interno
-    const internalToken = await this.authService.generateInternalToken(user);
+    // Generar tokens (access + refresh)
+    const accessToken = await this.authService.generateInternalToken(user);
+    const refreshToken = await this.authService.generateRefreshToken(user);
 
     return {
-      accessToken: internalToken,
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -59,6 +61,19 @@ export class AuthController {
       role: user.role,
       language: user.language,
     };
+  }
+
+  /**
+   * Endpoint para refrescar el access token usando un refresh token
+   * @param body - Body con refresh token
+   * @param body.refreshToken - Refresh token válido
+   * @returns Nuevo access token y refresh token
+   */
+  @Public()
+  @Post('refresh')
+  async refreshToken(@Body() body: { refreshToken: string }) {
+    const tokens = await this.authService.refreshAccessToken(body.refreshToken);
+    return tokens;
   }
 }
 

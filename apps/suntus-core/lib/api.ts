@@ -1,3 +1,5 @@
+import './env.validation'; // Valida variables de entorno al importar
+
 /**
  * Cliente API para suntus-core
  * Maneja peticiones autenticadas al backend (autenticación local de admin)

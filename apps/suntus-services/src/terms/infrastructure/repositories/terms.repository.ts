@@ -50,8 +50,8 @@ export class TermsRepository {
 
   async createVersion(data: {
     version: string;
-    title: Prisma.InputJsonValue;
-    content: Prisma.InputJsonValue;
+    title: any; // Prisma JsonValue type
+    content: any; // Prisma JsonValue type
     isActive: boolean;
     publishedAt: Date;
   }) {
