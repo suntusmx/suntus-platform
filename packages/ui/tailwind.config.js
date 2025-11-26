@@ -1,18 +1,18 @@
 /** @type {import('tailwindcss').Config} */
 // IMPORTANTE: Este archivo DEBE usar Tailwind v3 (NativeWind solo soporta v3)
-// NO incluir suntus-core aquí porque usa Tailwind v4
+// Configuración base para NativeWind (móvil) y Tailwind (web)
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
     "../../apps/suntus-app/**/*.{js,jsx,ts,tsx}",
     "../../apps/suntus-pro/**/*.{js,jsx,ts,tsx}",
-    // NO incluir suntus-core aquí (usa Tailwind v4)
+    "../../apps/suntus-core/src/**/*.{js,jsx,ts,tsx,mdx}",
+    "../../apps/suntus-landing/src/**/*.{js,jsx,ts,tsx,mdx}",
   ],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       // Tokens de diseño de suntUS
-      // TODO: Agregar colores, tipografía, espaciado personalizados
       colors: {
         primary: {
           50: '#eff6ff',

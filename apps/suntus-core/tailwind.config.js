@@ -1,18 +1,28 @@
 /** @type {import('tailwindcss').Config} */
 // suntus-core usa Tailwind v3 (homologado con el resto del monorepo)
-// Extiende el preset de packages/ui para componentes compartidos
+// NO usa el preset de NativeWind porque es una app web pura
 module.exports = {
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
   ],
-  // Extender preset de packages/ui para componentes compartidos
-  presets: [
-    require("@suntus/ui/tailwind-preset"),
-  ],
   theme: {
     extend: {
-      // Estilos específicos de suntus-core pueden ir aquí
+      // Tokens de diseño de suntUS (copiados desde packages/ui)
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+        },
+      },
     },
   },
   plugins: [],
