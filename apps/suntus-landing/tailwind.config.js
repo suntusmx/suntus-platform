@@ -1,17 +1,32 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  // 1. CONTENT: ¡Crucial! Escanea la app web Y la librería UI
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}", // <--- SIN ESTO, TODO ES BLANCO
+    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}" 
   ],
-  // 2. PRESET: Usa el mismo de NativeWind para compatibilidad de tokens
   presets: [require("nativewind/preset")],
-  // 3. DARK MODE: Habilitar cambio manual del tema
-  darkMode: 'class',
+  darkMode: 'class', 
   theme: {
-    extend: {},
+    extend: {
+      // Sin esto, Tailwind no sabe que 'primary' es una variable CSS
+      colors: {
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
+        primary: {
+          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
+          foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          foreground: "hsl(var(--card-foreground) / <alpha-value>)",
+        },
+        border: "hsl(var(--border) / <alpha-value>)",
+        destructive: {
+          DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
+          foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+        },
+      },
+    },
   },
   plugins: [],
 };
-

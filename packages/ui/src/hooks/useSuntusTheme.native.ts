@@ -1,11 +1,17 @@
 import { useColorScheme } from 'nativewind';
+import { useEffect } from 'react';
 
 /**
  * Hook useSuntusTheme - Envuelve useColorScheme de NativeWind (React Native)
- * NativeWind maneja el estado del tema automáticamente
+ * Fuerza dark mode al inicio, ignorando la preferencia del sistema
  */
 export function useSuntusTheme() {
   const { colorScheme, setColorScheme, toggleColorScheme } = useColorScheme();
+
+  // Forzar dark mode al inicio (ignorar preferencia del sistema)
+  useEffect(() => {
+    setColorScheme('dark');
+  }, []);
 
   const isDark = colorScheme === 'dark';
 
@@ -24,4 +30,3 @@ export function useSuntusTheme() {
     setTheme,
   };
 }
-

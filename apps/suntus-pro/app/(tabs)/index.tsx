@@ -1,17 +1,10 @@
 import { View, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { SuntusButton, ThemeToggle, useSuntusTheme } from '@suntus/ui';
+import { SuntusButton } from '@suntus/ui';
 
 export default function DashboardScreen() {
-  const { isDark } = useSuntusTheme();
-
   return (
     <View className="flex-1 bg-background items-center justify-center p-5">
-      {/* Toggle de tema en la esquina superior */}
-      <View className="absolute top-12 right-5 z-10">
-        <ThemeToggle />
-      </View>
-
       <Text className="text-2xl font-bold mb-2 text-foreground">Dashboard de Experto</Text>
       <Text className="text-base text-foreground/70 mb-8">Gestiona tus clientes y planes</Text>
 
@@ -34,7 +27,7 @@ export default function DashboardScreen() {
         />
       </View>
 
-      <StatusBar style={isDark ? "light" : "auto"} />
+      <StatusBar style="light" />
     </View>
   );
 }

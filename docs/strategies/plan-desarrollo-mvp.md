@@ -565,6 +565,35 @@ Portal Fitoteca (Independiente)
   - Incrementa `escrowCurrentMonth`
   - Cuando `escrowCurrentMonth = escrowTotalMonths`, marca como `RELEASED`
 
+#### 0.8 Sistema de Diseño Compartido (NativeWind v4 + Atomic Design)
+- [x] **Configuración de `packages/ui` como Design System:**
+  - NativeWind v4 integrado con Tailwind CSS v3.4.18
+  - `tailwind.config.js` centralizado con variables CSS semánticas (HSL)
+  - `global.css` con variables para light/dark mode (`--primary`, `--background`, `--foreground`, etc.)
+  - `cssInterop` configurado globalmente para componentes React Native (TouchableOpacity, Text, TextInput, Pressable, Icon)
+- [x] **Atomic Design implementado:**
+  - **Atoms:** Typography, ButtonBase, Input (`.native.tsx` / `.web.tsx`), Icon (Lucide React Native)
+  - **Molecules:** FormField, SocialButton, SearchInput
+  - **Organisms:** Pendiente (se implementarán en fases siguientes)
+- [x] **Integración en aplicaciones:**
+  - `suntus-app` (Expo): Metro configurado con NativeWind, Babel con preset, `global.css` importado
+  - `suntus-pro` (Expo): Metro configurado con NativeWind, Babel con preset, `global.css` importado
+  - `suntus-core` (Next.js): Webpack alias `react-native → react-native-web`, transpilePackages configurado
+  - `suntus-landing` (Next.js): Webpack alias `react-native → react-native-web`, transpilePackages configurado
+- [x] **Theming y Dark Mode:**
+  - Hook `useSuntusTheme` (`.native.ts` / `.web.ts`) que fuerza dark mode al inicio
+  - Variables CSS HSL con soporte de opacidad
+  - Color primario institucional: `#18CB96` (hsl(162 79% 45%))
+  - Dark mode forzado en todas las aplicaciones (no hay toggle visible)
+- [x] **Componentes compartidos:**
+  - `SuntusButton` (`.native.tsx` / `.web.tsx`) - Botón de prueba con variantes (primary, secondary, outline)
+  - `ThemeToggle` (removido de UI, dark mode forzado)
+  - Todos los componentes usan `forwardRef` para compatibilidad con animaciones
+- [x] **Documentación:**
+  - `packages/ui/context.md` creado con arquitectura y patrones
+  - `docs/strategies/nativewind-v4-design-system.md` creado con estrategia completa
+  - README.md actualizado con sección de sistema de diseño compartido
+
 **Entregables:**
 - [x] Monorepo funcional
 - [x] Base de datos con esquemas base (Schema Prisma completo con todos los modelos)
@@ -595,6 +624,13 @@ Portal Fitoteca (Independiente)
   - Backend: Zod schema sin defaults (falla si falta variable crítica)
   - Frontends: Schemas Zod para validación en `suntus-app`, `suntus-pro`, `suntus-core`, `suntus-landing`
   - Variables nuevas: `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`
+- [x] **Sistema de Diseño Compartido (NativeWind v4 + Atomic Design)** ✅
+  - `packages/ui` configurado como Design System centralizado
+  - NativeWind v4 integrado en todas las aplicaciones (Expo y Next.js)
+  - Atomic Design: Atoms (Typography, ButtonBase, Input, Icon) y Molecules (FormField, SocialButton, SearchInput) implementados
+  - Dark mode forzado en todas las aplicaciones
+  - Componentes compartidos funcionando en React Native y Next.js (vía react-native-web)
+  - Documentación completa en `packages/ui/context.md` y `docs/strategies/nativewind-v4-design-system.md`
 
 ---
 

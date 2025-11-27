@@ -359,6 +359,23 @@ apps/
 
 ## 📝 Cambios Recientes - FASE 0 Completada
 
+### Sistema de Diseño Compartido (NativeWind v4)
+- ✅ **`@suntus/ui` Design System** - Paquete compartido con Atomic Design
+- ✅ **NativeWind v4** configurado en todas las apps (móvil y web)
+- ✅ **Tailwind CSS v3.4.18** homologado en todo el monorepo
+- ✅ **Componentes compartidos:** `SuntusButton`, `Typography`, `ButtonBase`, `Input`, `Icon`, `FormField`, `SocialButton`, `SearchInput`
+- ✅ **Dark Mode forzado** - Full Dark Mode en todas las plataformas
+- ✅ **Variables CSS semánticas** - HSL con soporte de opacidad (`bg-primary`, `text-foreground`, etc.)
+- ✅ **Color institucional:** `#18CB96` (hsl(162 79% 45%))
+- ✅ **Platform-specific files:** `.native.tsx` y `.web.tsx` para separar lógica
+- ✅ **cssInterop global** configurado en `packages/ui/src/index.ts`
+- ✅ **react-native-web** integrado en Next.js para compartir componentes
+
+### Configuración de Apps
+- ✅ **suntus-app / suntus-pro:** Metro configurado con NativeWind, Babel con reanimated, dark mode forzado
+- ✅ **suntus-core / suntus-landing:** Next.js configurado con transpilePackages, Webpack alias para react-native-web
+- ✅ **Monorepo hoisting:** `.npmrc` configurado para hoist de dependencias críticas
+
 ### Validación de Variables de Entorno
 - ✅ **Validación estricta con Zod** en todos los proyectos (backend y frontends)
 - ✅ **Sin valores por defecto** - La aplicación falla si falta una variable crítica
@@ -381,7 +398,7 @@ apps/
 - ✅ **Helper `validateTranslatedField()`** para validación de campos multiidioma
 
 ### Documentación
-- ✅ **`context.md` actualizado** en `suntus-services` con información crítica
+- ✅ **`context.md` actualizado** en todos los proyectos con información crítica
 - ✅ **Plan de desarrollo actualizado** - FASE 0 marcada como completada
 
 ## 📝 Licencia

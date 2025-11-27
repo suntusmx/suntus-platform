@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@suntus/ui", "@suntus/core", "nativewind", "react-native-css-interop"],
+  transpilePackages: [
+    "@suntus/ui",
+    "@suntus/core",
+    "nativewind",
+    "react-native-css-interop",
+    "lucide-react-native",
+    "@react-native/assets-registry",
+  ],
   webpack: (config, { isServer }) => {
     // Alias react-native a react-native-web para compartir componentes
     config.resolve.alias = {

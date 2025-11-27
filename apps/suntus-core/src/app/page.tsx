@@ -1,17 +1,10 @@
 'use client';
 
-import { SuntusButton, ThemeToggle, useSuntusTheme } from '@suntus/ui';
+import { SuntusButton } from '@suntus/ui';
 
 export default function Home() {
-  const { isDark } = useSuntusTheme();
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-8">
-      {/* Toggle de tema en la esquina superior */}
-      <div className="absolute top-8 right-8 z-10">
-        <ThemeToggle />
-      </div>
-
       <div className="flex flex-col gap-4 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center mb-4 text-foreground">suntus-core</h1>
         

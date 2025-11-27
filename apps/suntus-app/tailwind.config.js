@@ -1,18 +1,32 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    // 1. CONTENT: Dónde buscar clases.
-    // Si no pones la ruta de "../../packages/ui", el botón compartido sale transparente.
-    content: [
-      "./app/**/*.{js,jsx,ts,tsx}", 
-      "../../packages/ui/src/**/*.{js,jsx,ts,tsx}" 
-    ],
-    // 2. PRESETS: ¡OBLIGATORIO para NativeWind v4!
-    // Sin esto, no compila a estilos nativos.
-    presets: [require("nativewind/preset")],
-    // 3. DARK MODE: Habilitar cambio manual del tema
-    darkMode: 'class',
-    theme: {
-      extend: {},
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}", 
+    "../../packages/ui/src/**/*.{js,jsx,ts,tsx}" 
+  ],
+  presets: [require("nativewind/preset")],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      // Sin esto, Tailwind no sabe que 'primary' es una variable CSS
+      colors: {
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
+        primary: {
+          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
+          foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          foreground: "hsl(var(--card-foreground) / <alpha-value>)",
+        },
+        border: "hsl(var(--border) / <alpha-value>)",
+        destructive: {
+          DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
+          foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+        },
+      },
     },
-    plugins: [],
-  };
+  },
+  plugins: [],
+};

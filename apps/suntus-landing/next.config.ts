@@ -4,7 +4,14 @@ const nextConfig: NextConfig = {
   // NOTA: output: "export" está comentado porque tenemos API routes (/api/auth/[...auth0])
   // Si necesitas static export, mueve las API routes a otro servicio o usa middleware
   // output: "export", // Static export
-  transpilePackages: ["@suntus/ui", "@suntus/core", "nativewind", "react-native-css-interop"],
+  transpilePackages: [
+    "@suntus/ui",
+    "@suntus/core",
+    "nativewind",
+    "react-native-css-interop",
+    "lucide-react-native",
+    "@react-native/assets-registry",
+  ],
   webpack: (config, { isServer }) => {
     // Alias react-native a react-native-web para compartir componentes
     config.resolve.alias = {
