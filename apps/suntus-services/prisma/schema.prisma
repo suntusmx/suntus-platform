@@ -15,15 +15,15 @@ datasource db {
 
 // SystemAdmin (God Mode) - NO usa Auth0
 model SystemAdmin {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String   // Bcrypt/Argon2
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String // Bcrypt/Argon2
   name         String
   role         AdminRole
-  isActive     Boolean  @default(true)
+  isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Auditoría (sin relación estricta - logs permanecen aunque se borre el admin)
 
@@ -33,8 +33,8 @@ model SystemAdmin {
 }
 
 enum AdminRole {
-  SUPER_ADMIN  // Acceso total
-  SUPPORT      // Soporte limitado
+  SUPER_ADMIN // Acceso total
+  SUPPORT // Soporte limitado
 }
 
 // User (Mortales) - Solo Auth0
@@ -44,8 +44,9 @@ model User {
   email             String   @unique
   phone             String?
   name              String
+  avatar            String? // URL de foto de perfil (de Auth0 social login o generado)
   role              UserRole
-  countryCode       String?  // ISO 3166-1 alpha-2
+  countryCode       String? // ISO 3166-1 alpha-2
   sexualOrientation String?
   isSuspended       Boolean  @default(false)
   language          String   @default("es") // es, en
@@ -53,17 +54,17 @@ model User {
   updatedAt         DateTime @updatedAt
 
   // Relaciones
-  expertProfile     ExpertProfile?
-  clientProfile     ClientProfile?
-  subscriptions     Subscription[]
-  payments          Payment[]
+  expertProfile       ExpertProfile?
+  clientProfile       ClientProfile?
+  subscriptions       Subscription[]
+  payments            Payment[]
   paymentTransactions PaymentTransaction[]
-  medicalRecords    MedicalRecord[]
-  measurements      Measurement[]
-  assignedPlans     AssignedPlan[]
-  termsAcceptances  TermsAcceptance[]
-  expertHistory     ExpertHistory[]
-  userCredits       UserCredit[] // Créditos internos por cambio de experto
+  medicalRecords      MedicalRecord[]
+  measurements        Measurement[]
+  assignedPlans       AssignedPlan[]
+  termsAcceptances    TermsAcceptance[]
+  expertHistory       ExpertHistory[]
+  userCredits         UserCredit[] // Créditos internos por cambio de experto
 
   @@index([email])
   @@index([auth0Id])
@@ -72,41 +73,41 @@ model User {
 }
 
 enum UserRole {
-  CLIENT  // Usuario final
-  EXPERT  // Experto (entrenador/nutriólogo)
+  CLIENT // Usuario final
+  EXPERT // Experto (entrenador/nutriólogo)
 }
 
 // ExpertProfile (Perfil de Experto)
 model ExpertProfile {
-  id                String   @id @default(uuid())
-  userId            String   @unique
-  stripeAccountId   String?  // ID de cuenta de Stripe Connect
-  isVerified        Boolean  @default(false)
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  stripeAccountId    String? // ID de cuenta de Stripe Connect
+  isVerified         Boolean            @default(false)
   verificationStatus VerificationStatus @default(PENDING)
-  rankingScore      Float    @default(0.0)
-  documentsUrl      Json?    // JSONB: { officialId: "path", accreditationDoc: "path" }
-  specialties       String[] // Array de especialidades
-  bio               Json?    // {"es": "...", "en": "..."}
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  rankingScore       Float              @default(0.0)
+  documentsUrl       Json? // JSONB: { officialId: "path", accreditationDoc: "path" }
+  specialties        String[] // Array de especialidades
+  bio                Json? // {"es": "...", "en": "..."}
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   // Relaciones
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscriptions    Subscription[]
-  exercises        Exercise[]
-  wikiArticles     WikiArticle[]
-  workoutTemplates  WorkoutTemplate[]
-  nutritionPlans   NutritionPlan[]
-  expertRanking    ExpertRanking?
-  expertSubscription ExpertSubscription?
-  questionTemplates QuestionTemplate[]
-  medicalRecords    MedicalRecord[]
-  expertHistory     ExpertHistory[]
-  paymentTransactions PaymentTransaction[] @relation("PaymentTransactionExpert")
-  payments          Payment[]
-  expertPayouts    ExpertPayout[]
-  activeClients     ClientProfile[] @relation("ActiveExpertClients")
-  wallet            ExpertWallet?
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions         Subscription[]
+  exercises             Exercise[]
+  wikiArticles          WikiArticle[]
+  workoutTemplates      WorkoutTemplate[]
+  nutritionPlans        NutritionPlan[]
+  expertRanking         ExpertRanking?
+  expertSubscription    ExpertSubscription?
+  questionTemplates     QuestionTemplate[]
+  medicalRecords        MedicalRecord[]
+  expertHistory         ExpertHistory[]
+  paymentTransactions   PaymentTransaction[]   @relation("PaymentTransactionExpert")
+  payments              Payment[]
+  expertPayouts         ExpertPayout[]
+  activeClients         ClientProfile[]        @relation("ActiveExpertClients")
+  wallet                ExpertWallet?
   subscriptionSnapshots SubscriptionSnapshot[]
 
   @@index([isVerified])
@@ -127,14 +128,14 @@ enum VerificationStatus {
 
 model Country {
   code      String   @id // ISO 3166-1 alpha-2
-  name      Json     // {"es": "México", "en": "Mexico", "native": "México"}
+  name      Json // {"es": "México", "en": "Mexico", "native": "México"}
   capital   String?
   currency  String[] // ISO 4217
-  phone     Int[]    // Códigos de llamada
+  phone     Int[] // Códigos de llamada
   continent String?
   createdAt DateTime @default(now())
 
-  states    State[]
+  states State[]
 
   @@map("countries")
 }
@@ -142,12 +143,13 @@ model Country {
 model State {
   id          String   @id @default(uuid())
   countryCode String
-  name        Json     // {"es": "Ciudad de México", "en": "Mexico City"}
-  code        String?  // Código del estado (ej: "CDMX", "JAL")
+  name        Json // {"es": "Ciudad de México", "en": "Mexico City"}
+  code        String? // Código del estado (ej: "CDMX", "JAL")
   createdAt   DateTime @default(now())
 
-  country     Country  @relation(fields: [countryCode], references: [code])
+  country        Country         @relation(fields: [countryCode], references: [code])
   municipalities Municipality[] // Municipios pertenecen directamente a estados
+  clientProfiles ClientProfile[] // Relación con perfiles de clientes
 
   @@index([countryCode])
   @@map("states")
@@ -155,40 +157,42 @@ model State {
 
 model Municipality {
   id        String   @id @default(uuid())
-  stateId   String   // FK a State (municipios pertenecen a estados)
-  name      Json     // {"es": "Guadalajara", "en": "Guadalajara"}
-  code      String?  // Código del municipio (opcional)
+  stateId   String // FK a State (municipios pertenecen a estados)
+  name      Json // {"es": "Guadalajara", "en": "Guadalajara"}
+  code      String? // Código del municipio (opcional)
   createdAt DateTime @default(now())
 
-  state     State    @relation(fields: [stateId], references: [id])
-  cities    City[]   // Ciudades/localidades dentro del municipio
-  postalCodes PostalCode[]
+  state          State           @relation(fields: [stateId], references: [id])
+  cities         City[] // Ciudades/localidades dentro del municipio
+  postalCodes    PostalCode[]
+  clientProfiles ClientProfile[] // Relación con perfiles de clientes
 
   @@index([stateId])
   @@map("municipalities")
 }
 
 model City {
-  id            String   @id @default(uuid())
+  id             String   @id @default(uuid())
   municipalityId String // FK a Municipality (ciudades/localidades pertenecen a municipios)
-  name          Json     // {"es": "Centro", "en": "Downtown"}
-  createdAt     DateTime @default(now())
+  name           Json // {"es": "Centro", "en": "Downtown"}
+  createdAt      DateTime @default(now())
 
-  municipality  Municipality @relation(fields: [municipalityId], references: [id])
-  postalCodes   PostalCode[]
+  municipality   Municipality    @relation(fields: [municipalityId], references: [id])
+  postalCodes    PostalCode[]
+  clientProfiles ClientProfile[] // Relación con perfiles de clientes
 
   @@index([municipalityId])
   @@map("cities")
 }
 
 model PostalCode {
-  code          String   @id
+  code           String   @id
   municipalityId String? // Opcional: puede pertenecer a municipio
-  cityId        String?  // Opcional: puede pertenecer a ciudad
-  createdAt     DateTime @default(now())
+  cityId         String? // Opcional: puede pertenecer a ciudad
+  createdAt      DateTime @default(now())
 
-  municipality  Municipality? @relation(fields: [municipalityId], references: [id])
-  city          City? @relation(fields: [cityId], references: [id])
+  municipality Municipality? @relation(fields: [municipalityId], references: [id])
+  city         City?         @relation(fields: [cityId], references: [id])
 
   @@index([municipalityId])
   @@index([cityId])
@@ -200,18 +204,18 @@ model PostalCode {
 // ============================================
 
 model Exercise {
-  id          String        @id @default(uuid())
-  creatorId   String?       // NULL = Sistema (Suntus HD), UUID = Experto
+  id          String             @id @default(uuid())
+  creatorId   String? // NULL = Sistema (Suntus HD), UUID = Experto
   visibility  ExerciseVisibility @default(PRIVATE)
-  name        Json          // {"es": "Sentadilla", "en": "Squat"}
-  description Json?         // {"es": "...", "en": "..."}
-  mediaUrl   String?        // URL del video/imagen (bucket público)
-  metadata    Json          // JSONB: { tags: [], muscles: [], equipment: [] }
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  name        Json // {"es": "Sentadilla", "en": "Squat"}
+  description Json? // {"es": "...", "en": "..."}
+  mediaUrl    String? // URL del video/imagen (bucket público)
+  metadata    Json // JSONB: { tags: [], muscles: [], equipment: [] }
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
   // Relaciones
-  creator     ExpertProfile? @relation(fields: [creatorId], references: [id])
+  creator       ExpertProfile? @relation(fields: [creatorId], references: [id])
   routineBlocks RoutineBlock[]
 
   @@index([creatorId])
@@ -220,8 +224,8 @@ model Exercise {
 }
 
 enum ExerciseVisibility {
-  SYSTEM          // Ejercicio de Suntus (Global, visible para todos)
-  PRIVATE         // Ejercicio del experto (solo él y sus clientes)
+  SYSTEM // Ejercicio de Suntus (Global, visible para todos)
+  PRIVATE // Ejercicio del experto (solo él y sus clientes)
   PUBLIC_COMMUNITY // Ejercicio compartido por experto (visible para todos)
 }
 
@@ -230,23 +234,23 @@ enum ExerciseVisibility {
 // ============================================
 
 model WikiArticle {
-  id            String          @id @default(uuid())
-  authorId      String
-  title         String
-  content       String          // Markdown
-  category      WikiCategory
-  tags          String[]        // Array para búsquedas
-  reputationScore Int           @default(0) // Upvotes - Downvotes
-  isVerifiedInfo Boolean        @default(false) // Check azul de Suntus
-  views         Int             @default(0)
-  likes         Int             @default(0)
-  shares        Int             @default(0)
-  publishedAt   DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id              String       @id @default(uuid())
+  authorId        String
+  title           String
+  content         String // Markdown
+  category        WikiCategory
+  tags            String[] // Array para búsquedas
+  reputationScore Int          @default(0) // Upvotes - Downvotes
+  isVerifiedInfo  Boolean      @default(false) // Check azul de Suntus
+  views           Int          @default(0)
+  likes           Int          @default(0)
+  shares          Int          @default(0)
+  publishedAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   // Relaciones
-  author        ExpertProfile   @relation(fields: [authorId], references: [id])
+  author ExpertProfile @relation(fields: [authorId], references: [id])
 
   @@index([authorId])
   @@index([category])
@@ -267,16 +271,16 @@ enum WikiCategory {
 // ============================================
 
 model MedicalRecord {
-  id        String          @id @default(uuid())
-  userId    String          // OWNER del dato
-  authorId  String          // Creator - Inmutable (ExpertProfile)
+  id        String            @id @default(uuid())
+  userId    String // OWNER del dato
+  authorId  String // Creator - Inmutable (ExpertProfile)
   type      MedicalRecordType
-  content   Json            // JSONB: Datos estructurados
-  createdAt DateTime        @default(now())
+  content   Json // JSONB: Datos estructurados
+  createdAt DateTime          @default(now())
 
   // Relaciones
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  author    ExpertProfile   @relation(fields: [authorId], references: [id])
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  author ExpertProfile @relation(fields: [authorId], references: [id])
 
   @@index([userId])
   @@index([authorId])
@@ -285,22 +289,22 @@ model MedicalRecord {
 }
 
 enum MedicalRecordType {
-  MEASUREMENT      // Mediciones (peso, talla, etc.)
-  INJURY          // Lesiones
-  NOTE            // Notas médicas
-  PROGRESS_PHOTO  // Fotos de progreso
-  PLAN            // Plan nutricional/deportivo
+  MEASUREMENT // Mediciones (peso, talla, etc.)
+  INJURY // Lesiones
+  NOTE // Notas médicas
+  PROGRESS_PHOTO // Fotos de progreso
+  PLAN // Plan nutricional/deportivo
 }
 
 model Measurement {
   id        String   @id @default(uuid())
-  userId    String   // OWNER del dato
+  userId    String // OWNER del dato
   date      DateTime
-  data      Json     // JSONB: { weight: 70, height: 175, bodyFat: 15 }
+  data      Json // JSONB: { weight: 70, height: 175, bodyFat: 15 }
   createdAt DateTime @default(now())
 
   // Relaciones
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -315,13 +319,13 @@ model WorkoutTemplate {
   id            String   @id @default(uuid())
   expertId      String
   name          String
-  weekStructure Json     // JSONB: Estructura de la semana (L-D con ejercicios)
+  weekStructure Json // JSONB: Estructura de la semana (L-D con ejercicios)
   isDefault     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Relaciones
-  expert        ExpertProfile @relation(fields: [expertId], references: [id])
+  expert        ExpertProfile  @relation(fields: [expertId], references: [id])
   assignedPlans AssignedPlan[]
 
   @@index([expertId])
@@ -329,44 +333,44 @@ model WorkoutTemplate {
 }
 
 model RoutineBlock {
-  id          String   @id @default(uuid())
-  exerciseId  String
-  sets        Int?
-  reps        Int?
-  weight      Decimal?
-  rest        Int?     // Segundos de descanso
-  notes       String?
-  order       Int      // Orden en la rutina
+  id         String   @id @default(uuid())
+  exerciseId String
+  sets       Int?
+  reps       Int?
+  weight     Decimal?
+  rest       Int? // Segundos de descanso
+  notes      String?
+  order      Int // Orden en la rutina
 
   // Relaciones
-  exercise    Exercise @relation(fields: [exerciseId], references: [id])
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
 
   @@index([exerciseId])
   @@map("routine_blocks")
 }
 
 model AssignedPlan {
-  id              String   @id @default(uuid())
-  userId          String
-  subscriptionId  String?  // FK a Subscription (para rastrear consumo)
-  templateId      String?  // WorkoutTemplate (opcional)
-  nutritionPlanId String?  // NutritionPlan (opcional)
-  status          PlanStatus @default(ACTIVE)
-  startDate       DateTime
-  endDate         DateTime?
+  id                   String     @id @default(uuid())
+  userId               String
+  subscriptionId       String? // FK a Subscription (para rastrear consumo)
+  templateId           String? // WorkoutTemplate (opcional)
+  nutritionPlanId      String? // NutritionPlan (opcional)
+  status               PlanStatus @default(ACTIVE)
+  startDate            DateTime
+  endDate              DateTime?
   // Protección Digital Seal
-  isContentConsumed Boolean @default(false) // Si el usuario abrió/vio el plan
-  contentConsumedAt DateTime? // Timestamp de cuando se consumió
-  screenshotDetected Boolean @default(false) // Si se detectó screenshot
+  isContentConsumed    Boolean    @default(false) // Si el usuario abrió/vio el plan
+  contentConsumedAt    DateTime? // Timestamp de cuando se consumió
+  screenshotDetected   Boolean    @default(false) // Si se detectó screenshot
   screenshotDetectedAt DateTime? // Timestamp de detección
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
   // Relaciones
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
-  template        WorkoutTemplate? @relation(fields: [templateId], references: [id])
-  nutritionPlan   NutritionPlan? @relation(fields: [nutritionPlanId], references: [id])
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription  Subscription?    @relation(fields: [subscriptionId], references: [id])
+  template      WorkoutTemplate? @relation(fields: [templateId], references: [id])
+  nutritionPlan NutritionPlan?   @relation(fields: [nutritionPlanId], references: [id])
 
   @@index([userId])
   @@index([subscriptionId])
@@ -376,23 +380,23 @@ model AssignedPlan {
 }
 
 enum PlanStatus {
-  PENDING     // En progreso (experto creando)
-  ACTIVE      // Activo
-  PAUSED      // Pausado
-  COMPLETED   // Completado
-  CANCELLED   // Cancelado
+  PENDING // En progreso (experto creando)
+  ACTIVE // Activo
+  PAUSED // Pausado
+  COMPLETED // Completado
+  CANCELLED // Cancelado
 }
 
 model NutritionPlan {
-  id          String   @id @default(uuid())
-  expertId    String
-  name        String
-  structure   Json     // JSONB: Calendario semanal, comidas, recetas, equivalentes
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  expertId  String
+  name      String
+  structure Json // JSONB: Calendario semanal, comidas, recetas, equivalentes
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  expert      ExpertProfile @relation(fields: [expertId], references: [id])
+  expert        ExpertProfile  @relation(fields: [expertId], references: [id])
   assignedPlans AssignedPlan[]
 
   @@index([expertId])
@@ -404,39 +408,39 @@ model NutritionPlan {
 // ============================================
 
 model Subscription {
-  id              String   @id @default(uuid())
-  userId          String
-  expertId        String
-  serviceType     ServiceType
-  status          SubscriptionStatus @default(ACTIVE)
-  startDate       DateTime
-  endDate         DateTime?
-  amount          Decimal
-  cycle           BillingCycle
+  id                   String             @id @default(uuid())
+  userId               String
+  expertId             String
+  serviceType          ServiceType
+  status               SubscriptionStatus @default(ACTIVE)
+  startDate            DateTime
+  endDate              DateTime?
+  amount               Decimal
+  cycle                BillingCycle
   // Stripe Connect
-  stripeSubscriptionId String?  // ID de suscripción en Stripe
-  stripePriceId   String?  // Price ID original (para Grandfathering)
-  stripeCustomerId String? // Customer ID en Stripe
+  stripeSubscriptionId String? // ID de suscripción en Stripe
+  stripePriceId        String? // Price ID original (para Grandfathering)
+  stripeCustomerId     String? // Customer ID en Stripe
   // Grandfathering: Snapshot del precio al momento de contratar
-  snapshotId      String?  // FK a SubscriptionSnapshot (precio inmutado)
+  snapshotId           String? // FK a SubscriptionSnapshot (precio inmutado)
   // Cancelación
-  cancelsAtPeriodEnd Boolean @default(false) // Cancelará al final del período
-  cancelAt        DateTime? // Fecha de cancelación programada
+  cancelsAtPeriodEnd   Boolean            @default(false) // Cancelará al final del período
+  cancelAt             DateTime? // Fecha de cancelación programada
   // Protección Digital Seal
-  isContentConsumed Boolean @default(false) // Si el usuario vio el contenido, bloquea reembolso
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isContentConsumed    Boolean            @default(false) // Si el usuario vio el contenido, bloquea reembolso
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
   // Relaciones
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expert          ExpertProfile @relation(fields: [expertId], references: [id])
-  payments        Payment[]
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expert              ExpertProfile         @relation(fields: [expertId], references: [id])
+  payments            Payment[]
   paymentTransactions PaymentTransaction[]
-  templateAnswers TemplateAnswer[]
-  assignedPlans   AssignedPlan[]
-  snapshot        SubscriptionSnapshot? @relation(fields: [snapshotId], references: [id])
-  sourceCredits   UserCredit[] @relation("SourceSubscription")
-  appliedCredits  UserCredit[] @relation("AppliedToSubscription")
+  templateAnswers     TemplateAnswer[]
+  assignedPlans       AssignedPlan[]
+  snapshot            SubscriptionSnapshot? @relation(fields: [snapshotId], references: [id])
+  sourceCredits       UserCredit[]          @relation("SourceSubscription")
+  appliedCredits      UserCredit[]          @relation("AppliedToSubscription")
 
   @@index([userId])
   @@index([expertId])
@@ -453,11 +457,11 @@ enum ServiceType {
 }
 
 enum SubscriptionStatus {
-  PENDING     // Usuario pagó pero no completó templates
-  ACTIVE      // Activa
-  PAUSED      // Pausada
-  CANCELLED   // Cancelada
-  EXPIRED     // Expirada
+  PENDING // Usuario pagó pero no completó templates
+  ACTIVE // Activa
+  PAUSED // Pausada
+  CANCELLED // Cancelada
+  EXPIRED // Expirada
 }
 
 enum BillingCycle {
@@ -467,23 +471,23 @@ enum BillingCycle {
 }
 
 model Payment {
-  id              String   @id @default(uuid())
-  userId          String
-  expertId        String
-  subscriptionId  String?
-  amount          Decimal  // Monto total pagado
+  id               String        @id @default(uuid())
+  userId           String
+  expertId         String
+  subscriptionId   String?
+  amount           Decimal // Monto total pagado
   suntusCommission Decimal // Comisión de suntUS (calculada según "Beca del 6to")
-  expertPayout    Decimal  // Pago al experto (después de comisión)
-  status          PaymentStatus @default(PENDING)
-  stripePaymentId String?  // ID de pago en Stripe
-  processedAt     DateTime?
-  createdAt       DateTime @default(now())
+  expertPayout     Decimal // Pago al experto (después de comisión)
+  status           PaymentStatus @default(PENDING)
+  stripePaymentId  String? // ID de pago en Stripe
+  processedAt      DateTime?
+  createdAt        DateTime      @default(now())
 
   // Relaciones
-  user            User     @relation(fields: [userId], references: [id])
-  expert          ExpertProfile @relation(fields: [expertId], references: [id])
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
-  transactions    PaymentTransaction[]
+  user         User                 @relation(fields: [userId], references: [id])
+  expert       ExpertProfile        @relation(fields: [expertId], references: [id])
+  subscription Subscription?        @relation(fields: [subscriptionId], references: [id])
+  transactions PaymentTransaction[]
 
   @@index([userId])
   @@index([expertId])
@@ -499,30 +503,30 @@ enum PaymentStatus {
 }
 
 model ExpertSubscription {
-  id                String   @id @default(uuid())
-  expertId          String   @unique
-  activeUsersCount  Int      @default(0)
-  totalRevenue      Decimal  @default(0)
-  totalCommission   Decimal  @default(0)
-  totalPayout       Decimal  @default(0)
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(uuid())
+  expertId         String   @unique
+  activeUsersCount Int      @default(0)
+  totalRevenue     Decimal  @default(0)
+  totalCommission  Decimal  @default(0)
+  totalPayout      Decimal  @default(0)
+  updatedAt        DateTime @updatedAt
 
   // Relaciones
-  expert            ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
 
   @@map("expert_subscriptions")
 }
 
 model ExpertPayout {
-  id            String   @id @default(uuid())
-  expertId      String
-  totalAmount   Decimal
-  status        PayoutStatus @default(PENDING)
-  processedAt   DateTime?
-  createdAt     DateTime @default(now())
+  id          String       @id @default(uuid())
+  expertId    String
+  totalAmount Decimal
+  status      PayoutStatus @default(PENDING)
+  processedAt DateTime?
+  createdAt   DateTime     @default(now())
 
   // Relaciones
-  expert        ExpertProfile @relation(fields: [expertId], references: [id])
+  expert ExpertProfile @relation(fields: [expertId], references: [id])
 
   @@index([expertId])
   @@index([status])
@@ -540,16 +544,16 @@ enum PayoutStatus {
 // ============================================
 
 model QuestionTemplate {
-  id          String   @id @default(uuid())
-  expertId    String
-  type        TemplateType
-  questions   Json     // JSONB: Array de preguntas configurables
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String       @id @default(uuid())
+  expertId  String
+  type      TemplateType
+  questions Json // JSONB: Array de preguntas configurables
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   // Relaciones
-  expert      ExpertProfile @relation(fields: [expertId], references: [id])
-  answers     TemplateAnswer[]
+  expert  ExpertProfile    @relation(fields: [expertId], references: [id])
+  answers TemplateAnswer[]
 
   @@index([expertId])
   @@index([type])
@@ -557,21 +561,21 @@ model QuestionTemplate {
 }
 
 enum TemplateType {
-  PERSONAL    // Preguntas personales
-  NUTRITION   // Preguntas de nutrición
-  TRAINING    // Preguntas deportivas
+  PERSONAL // Preguntas personales
+  NUTRITION // Preguntas de nutrición
+  TRAINING // Preguntas deportivas
 }
 
 model TemplateAnswer {
-  id              String   @id @default(uuid())
-  subscriptionId  String
-  templateId      String
-  answers         Json     // JSONB: Respuestas del usuario
-  createdAt       DateTime @default(now())
+  id             String   @id @default(uuid())
+  subscriptionId String
+  templateId     String
+  answers        Json // JSONB: Respuestas del usuario
+  createdAt      DateTime @default(now())
 
   // Relaciones
-  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  template        QuestionTemplate @relation(fields: [templateId], references: [id])
+  subscription Subscription     @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  template     QuestionTemplate @relation(fields: [templateId], references: [id])
 
   @@index([subscriptionId])
   @@index([templateId])
@@ -583,31 +587,31 @@ model TemplateAnswer {
 // ============================================
 
 model Recipe {
-  id          String        @id @default(uuid())
-  name        Json          // {"es": "Pechuga de pollo", "en": "Chicken breast"}
-  macros      Json          // {"protein": 30, "carbs": 50, "fat": 20, "calories": 400}
-  equivalents Json?         // {"proteins": 2, "carbs": 3} (equivalencias)
-  ingredients Json          // Lista de ingredientes traducida
-  instructions Json         // Instrucciones traducidas
-  imageUrl    String?
-  source      RecipeSource  @default(SYSTEM)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id           String       @id @default(uuid())
+  name         Json // {"es": "Pechuga de pollo", "en": "Chicken breast"}
+  macros       Json // {"protein": 30, "carbs": 50, "fat": 20, "calories": 400}
+  equivalents  Json? // {"proteins": 2, "carbs": 3} (equivalencias)
+  ingredients  Json // Lista de ingredientes traducida
+  instructions Json // Instrucciones traducidas
+  imageUrl     String?
+  source       RecipeSource @default(SYSTEM)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@index([source])
   @@map("recipes")
 }
 
 enum RecipeSource {
-  SYSTEM  // Recetas de suntUS
-  EXPERT  // Recetas creadas por expertos
+  SYSTEM // Recetas de suntUS
+  EXPERT // Recetas creadas por expertos
 }
 
 model MacroEquivalent {
-  id    String     @id @default(uuid())
+  id    String    @id @default(uuid())
   type  MacroType
-  unit  String     // "2 Proteínas" = 30 gramos
-  grams Decimal    // Gramos equivalentes
+  unit  String // "2 Proteínas" = 30 gramos
+  grams Decimal // Gramos equivalentes
 
   @@unique([type, unit])
   @@map("macro_equivalents")
@@ -624,17 +628,17 @@ enum MacroType {
 // ============================================
 
 model ExpertRanking {
-  id                    String   @id @default(uuid())
-  expertId              String   @unique
-  verificationScore     Int      @default(0) // +100 si verificado
-  reputationScore       Int      @default(0) // Hasta +50 (rating)
-  salesVolumeScore      Int      @default(0) // Hasta +30 (usuarios activos)
-  fitotecaContribution  Int      @default(0) // Hasta +20 (artículos)
-  totalScore            Int      @default(0) // Suma de todos
-  lastUpdated           DateTime @updatedAt
+  id                   String   @id @default(uuid())
+  expertId             String   @unique
+  verificationScore    Int      @default(0) // +100 si verificado
+  reputationScore      Int      @default(0) // Hasta +50 (rating)
+  salesVolumeScore     Int      @default(0) // Hasta +30 (usuarios activos)
+  fitotecaContribution Int      @default(0) // Hasta +20 (artículos)
+  totalScore           Int      @default(0) // Suma de todos
+  lastUpdated          DateTime @updatedAt
 
   // Relaciones
-  expert                ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
 
   @@index([totalScore])
   @@map("expert_rankings")
@@ -645,13 +649,13 @@ model ExpertRanking {
 // ============================================
 
 model TermsAndConditions {
-  id          String   @id @default(uuid())
-  version     String   @unique // "1.0", "1.1", "2.0" (semantic versioning)
-  title       Json     // {"es": "...", "en": "..."}
-  content     Json     // Contenido traducido
-  isActive    Boolean  @default(false) // Solo una versión activa
+  id          String    @id @default(uuid())
+  version     String    @unique // "1.0", "1.1", "2.0" (semantic versioning)
+  title       Json // {"es": "...", "en": "..."}
+  content     Json // Contenido traducido
+  isActive    Boolean   @default(false) // Solo una versión activa
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   // Relaciones
   acceptances TermsAcceptance[]
@@ -661,17 +665,17 @@ model TermsAndConditions {
 }
 
 model TermsAcceptance {
-  id        String   @id @default(uuid())
-  userId    String
-  termsId   String
-  version   String   // Versión aceptada
+  id         String   @id @default(uuid())
+  userId     String
+  termsId    String
+  version    String // Versión aceptada
   acceptedAt DateTime @default(now())
-  ipAddress String?
-  userAgent String?
+  ipAddress  String?
+  userAgent  String?
 
   // Relaciones
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  terms     TermsAndConditions @relation(fields: [termsId], references: [id])
+  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  terms TermsAndConditions @relation(fields: [termsId], references: [id])
 
   // IMPORTANTE: Esta tabla también es append-only
   @@unique([userId, termsId]) // Un usuario solo puede aceptar una versión una vez
@@ -685,24 +689,24 @@ model TermsAcceptance {
 // ============================================
 
 model AuditLog {
-  id          String     @id @default(uuid())
-  entityType  String     // "WorkoutPlan", "TermsAndConditions", "User", "Expert", "Payment", etc.
-  entityId    String     // UUID del objeto modificado
-  action      AuditAction
-  actorId     String     // UUID de quién ejecutó la acción (User, ExpertProfile, SystemAdmin)
-  actorType   ActorType
-  actorName   String?    // Snapshot del nombre del actor (para blindaje - permanece aunque se borre)
-  actorEmail  String?    // Snapshot del email del actor (opcional, para auditoría)
-  snapshot    Json       // JSONB: Copia exacta del dato antes y después
-  ipAddress   String?
-  userAgent   String?
-  metadata    Json?      // JSONB: Datos adicionales
-  timestamp   DateTime   @default(now())
+  id         String      @id @default(uuid())
+  entityType String // "WorkoutPlan", "TermsAndConditions", "User", "Expert", "Payment", etc.
+  entityId   String // UUID del objeto modificado
+  action     AuditAction
+  actorId    String // UUID de quién ejecutó la acción (User, ExpertProfile, SystemAdmin)
+  actorType  ActorType
+  actorName  String? // Snapshot del nombre del actor (para blindaje - permanece aunque se borre)
+  actorEmail String? // Snapshot del email del actor (opcional, para auditoría)
+  snapshot   Json // JSONB: Copia exacta del dato antes y después
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json? // JSONB: Datos adicionales
+  timestamp  DateTime    @default(now())
 
   // IMPORTANTE: NO hay relaciones estrictas (FK) para blindaje total.
   // Si se borra un usuario/admin/expert, el log PERMANECE intacto.
   // actorId, actorName y actorEmail son suficientes para auditoría.
-  
+
   // IMPORTANTE: Esta tabla es APPEND ONLY. Nunca se borra ni se edita.
   @@index([entityType, entityId])
   @@index([actorId])
@@ -712,25 +716,25 @@ model AuditLog {
 }
 
 enum AuditAction {
-  CREATE      // Creación de entidad
-  UPDATE      // Actualización de entidad
-  DELETE      // Eliminación (soft delete también se registra)
-  ACCEPT      // Aceptación (T&C, términos, etc.)
-  REJECT      // Rechazo (validación de experto, etc.)
-  APPROVE     // Aprobación (validación, etc.)
-  SUSPEND     // Suspensión de cuenta
+  CREATE // Creación de entidad
+  UPDATE // Actualización de entidad
+  DELETE // Eliminación (soft delete también se registra)
+  ACCEPT // Aceptación (T&C, términos, etc.)
+  REJECT // Rechazo (validación de experto, etc.)
+  APPROVE // Aprobación (validación, etc.)
+  SUSPEND // Suspensión de cuenta
   UNSUSUSPEND // Reactivación de cuenta
-  PAYMENT     // Procesamiento de pago
-  REFUND      // Reembolso
-  ACCESS      // Acceso a datos sensibles (documentos privados)
-  EXPORT      // Exportación de datos
+  PAYMENT // Procesamiento de pago
+  REFUND // Reembolso
+  ACCESS // Acceso a datos sensibles (documentos privados)
+  EXPORT // Exportación de datos
 }
 
 enum ActorType {
-  USER        // Usuario final (User con role CLIENT)
-  EXPERT      // Experto (ExpertProfile)
-  ADMIN       // SystemAdmin (suntus-admin, NO usa Auth0)
-  SYSTEM      // Acción automática del sistema
+  USER // Usuario final (User con role CLIENT)
+  EXPERT // Experto (ExpertProfile)
+  ADMIN // SystemAdmin (suntus-admin, NO usa Auth0)
+  SYSTEM // Acción automática del sistema
 }
 
 // ============================================
@@ -739,35 +743,86 @@ enum ActorType {
 
 // ClientProfile: Solo guarda el experto activo actual
 model ClientProfile {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  activeExpertId String?  // FK a ExpertProfile (experto actual)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id     String @id @default(uuid())
+  userId String @unique
+
+  // Datos de Identidad
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime
+
+  // Datos Biométricos
+  initialWeight Decimal? @db.Decimal(5, 2) // Precisión: 999.99 kg
+  height        Decimal? @db.Decimal(4, 2) // Precisión: 999.99 cm
+
+  // Datos Geográficos
+  postalCode     String?
+  stateId        String?
+  municipalityId String?
+  cityId         String?
+  neighborhood   String? // Colonia
+
+  // Datos de Preferencia (Enums)
+  goal   ClientGoal?
+  budget ClientBudget?
+  gender ClientGender?
+
+  // Relación con experto activo
+  activeExpertId String? // FK a ExpertProfile (experto actual)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  activeExpert  ExpertProfile? @relation("ActiveExpertClients", fields: [activeExpertId], references: [id], onDelete: SetNull)
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  state        State?         @relation(fields: [stateId], references: [id])
+  municipality Municipality?  @relation(fields: [municipalityId], references: [id])
+  city         City?          @relation(fields: [cityId], references: [id])
+  activeExpert ExpertProfile? @relation("ActiveExpertClients", fields: [activeExpertId], references: [id], onDelete: SetNull)
 
   @@index([activeExpertId])
+  @@index([stateId])
+  @@index([municipalityId])
+  @@index([postalCode])
   @@map("client_profiles")
+}
+
+enum ClientGoal {
+  LOSE_FAT // Bajar grasa
+  BUILD_MUSCLE // Músculo
+  MAINTENANCE // Mantenimiento
+  PERFORMANCE // Rendimiento
+}
+
+enum ClientBudget {
+  LOW // Bajo
+  MEDIUM // Medio
+  HIGH // Alto
+  NO_BUDGET // Sin presupuesto
+}
+
+enum ClientGender {
+  MALE // Masculino
+  FEMALE // Femenino
+  OTHER // Otro
 }
 
 // ExpertHistory: Historial completo de relaciones Cliente-Experto
 model ExpertHistory {
-  id          String   @id @default(uuid())
-  userId      String   // Cliente
-  expertId    String   // Experto
-  startDate   DateTime
-  endDate     DateTime? // NULL si es la relación actual
-  status      ExpertHistoryStatus @default(ACTIVE)
-  reason      String?  // Razón de finalización (opcional)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String              @id @default(uuid())
+  userId    String // Cliente
+  expertId  String // Experto
+  startDate DateTime
+  endDate   DateTime? // NULL si es la relación actual
+  status    ExpertHistoryStatus @default(ACTIVE)
+  reason    String? // Razón de finalización (opcional)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
   // Relaciones
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expert      ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expertId])
@@ -777,9 +832,9 @@ model ExpertHistory {
 }
 
 enum ExpertHistoryStatus {
-  ACTIVE      // Relación activa actual
-  ENDED       // Relación finalizada normalmente
-  CANCELLED   // Relación cancelada
+  ACTIVE // Relación activa actual
+  ENDED // Relación finalizada normalmente
+  CANCELLED // Relación cancelada
 }
 
 // ============================================
@@ -788,36 +843,36 @@ enum ExpertHistoryStatus {
 
 // PaymentTransaction: Registro detallado de cada transacción para contabilidad
 model PaymentTransaction {
-  id              String   @id @default(uuid())
-  userId          String   // Cliente que pagó
-  expertId        String   // Experto que recibió el servicio
-  subscriptionId  String?  // Suscripción relacionada (opcional)
-  paymentId       String?  // Referencia al Payment original (opcional)
-  amount          Decimal  // Monto total pagado por el cliente
-  suntusFee       Decimal  // Comisión de suntUS (calculada según "Beca del 6to")
-  expertPayout    Decimal  // Pago al experto (amount - suntusFee)
-  status          PaymentTransactionStatus @default(PENDING)
-  stripePaymentId String?  // ID de pago en Stripe
-  stripeFee        Decimal? // Fee de Stripe (opcional, para contabilidad completa)
+  id                  String                   @id @default(uuid())
+  userId              String // Cliente que pagó
+  expertId            String // Experto que recibió el servicio
+  subscriptionId      String? // Suscripción relacionada (opcional)
+  paymentId           String? // Referencia al Payment original (opcional)
+  amount              Decimal // Monto total pagado por el cliente
+  suntusFee           Decimal // Comisión de suntUS (calculada según "Beca del 6to")
+  expertPayout        Decimal // Pago al experto (amount - suntusFee)
+  status              PaymentTransactionStatus @default(PENDING)
+  stripePaymentId     String? // ID de pago en Stripe
+  stripeFee           Decimal? // Fee de Stripe (opcional, para contabilidad completa)
   // Wallet Model: Rolling T+7
-  walletStatus    WalletTransactionStatus @default(PENDING) // Estado en el wallet
-  pendingUntil    DateTime? // Fecha en que se mueve de pending a available (T+7)
-  movedToAvailableAt DateTime? // Timestamp de cuando se movió a available
+  walletStatus        WalletTransactionStatus  @default(PENDING) // Estado en el wallet
+  pendingUntil        DateTime? // Fecha en que se mueve de pending a available (T+7)
+  movedToAvailableAt  DateTime? // Timestamp de cuando se movió a available
   // Escrow para Packs (Goteo)
-  isEscrow        Boolean  @default(false) // Si es pago de pack (ej: 6 meses)
-  escrowTotalMonths Int?   // Total de meses del pack
-  escrowCurrentMonth Int?  // Mes actual que se está liberando (1-6)
+  isEscrow            Boolean                  @default(false) // Si es pago de pack (ej: 6 meses)
+  escrowTotalMonths   Int? // Total de meses del pack
+  escrowCurrentMonth  Int? // Mes actual que se está liberando (1-6)
   escrowReleaseAmount Decimal? // Monto que se libera este mes
-  processedAt     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  processedAt         DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
 
   // Relaciones
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expert          ExpertProfile @relation("PaymentTransactionExpert", fields: [expertId], references: [id], onDelete: Cascade, map: "payment_transactions_expertId_fkey")
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  payment         Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
-  wallet          ExpertWallet @relation("PaymentTransactionWallet", fields: [expertId], references: [expertId], map: "payment_transactions_wallet_expertId_fkey")
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expert       ExpertProfile @relation("PaymentTransactionExpert", fields: [expertId], references: [id], onDelete: Cascade, map: "payment_transactions_expertId_fkey")
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  payment      Payment?      @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  wallet       ExpertWallet  @relation("PaymentTransactionWallet", fields: [expertId], references: [expertId], map: "payment_transactions_wallet_expertId_fkey")
 
   // IMPORTANTE: Esta tabla es para contabilidad interna.
   // Registra cada cobro con desglose de comisiones y pagos.
@@ -832,18 +887,18 @@ model PaymentTransaction {
 }
 
 enum WalletTransactionStatus {
-  PENDING     // Fondos en pending (esperando T+7)
-  AVAILABLE   // Fondos disponibles para payout
-  RELEASED    // Fondos ya liberados (escrow goteo)
-  PAID_OUT    // Fondos ya pagados al experto
+  PENDING // Fondos en pending (esperando T+7)
+  AVAILABLE // Fondos disponibles para payout
+  RELEASED // Fondos ya liberados (escrow goteo)
+  PAID_OUT // Fondos ya pagados al experto
 }
 
 enum PaymentTransactionStatus {
-  PENDING     // Transacción pendiente
-  COMPLETED   // Transacción completada
-  FAILED      // Transacción fallida
-  REFUNDED    // Transacción reembolsada
-  CANCELLED   // Transacción cancelada
+  PENDING // Transacción pendiente
+  COMPLETED // Transacción completada
+  FAILED // Transacción fallida
+  REFUNDED // Transacción reembolsada
+  CANCELLED // Transacción cancelada
 }
 
 // ============================================
@@ -852,18 +907,18 @@ enum PaymentTransactionStatus {
 
 // ExpertWallet: Wallet del experto con modelo Rolling T+7
 model ExpertWallet {
-  expertId        String   @id // FK única a ExpertProfile
-  pendingBalance  Decimal  @default(0) // Fondos en espera (T+7)
-  availableBalance Decimal @default(0) // Fondos disponibles para payout
-  totalEarned     Decimal  @default(0) // Total histórico ganado
-  totalPaidOut    Decimal  @default(0) // Total histórico pagado
-  lastPayoutAt    DateTime? // Última fecha de payout
-  nextPayoutAt   DateTime? // Próxima fecha de payout (Miércoles)
-  updatedAt       DateTime @updatedAt
+  expertId         String    @id // FK única a ExpertProfile
+  pendingBalance   Decimal   @default(0) // Fondos en espera (T+7)
+  availableBalance Decimal   @default(0) // Fondos disponibles para payout
+  totalEarned      Decimal   @default(0) // Total histórico ganado
+  totalPaidOut     Decimal   @default(0) // Total histórico pagado
+  lastPayoutAt     DateTime? // Última fecha de payout
+  nextPayoutAt     DateTime? // Próxima fecha de payout (Miércoles)
+  updatedAt        DateTime  @updatedAt
 
   // Relaciones
-  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  transactions    PaymentTransaction[] @relation("PaymentTransactionWallet")
+  expert       ExpertProfile        @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  transactions PaymentTransaction[] @relation("PaymentTransactionWallet")
 
   @@map("expert_wallets")
 }
@@ -874,21 +929,21 @@ model ExpertWallet {
 
 // SubscriptionSnapshot: Snapshot inmutable del precio al momento de contratar
 model SubscriptionSnapshot {
-  id              String   @id @default(uuid())
-  expertId        String
-  stripePriceId   String   // Price ID original en Stripe (archivado)
-  amount          Decimal  // Precio original (inmutable)
-  cycle           BillingCycle // Ciclo original
-  serviceType     ServiceType // Tipo de servicio
+  id            String       @id @default(uuid())
+  expertId      String
+  stripePriceId String // Price ID original en Stripe (archivado)
+  amount        Decimal // Precio original (inmutable)
+  cycle         BillingCycle // Ciclo original
+  serviceType   ServiceType // Tipo de servicio
   // Metadata del precio
-  priceMetadata   Json?    // JSONB: Metadatos adicionales del precio
+  priceMetadata Json? // JSONB: Metadatos adicionales del precio
   // Timestamps
-  createdAt       DateTime @default(now()) // Fecha de creación del snapshot
-  archivedAt      DateTime? // Fecha en que el precio fue archivado (cuando experto cambió precio)
+  createdAt     DateTime     @default(now()) // Fecha de creación del snapshot
+  archivedAt    DateTime? // Fecha en que el precio fue archivado (cuando experto cambió precio)
 
   // Relaciones
-  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  subscriptions   Subscription[] // Suscripciones que usan este precio (Grandfathering)
+  expert        ExpertProfile  @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[] // Suscripciones que usan este precio (Grandfathering)
 
   @@index([expertId])
   @@index([stripePriceId])
@@ -902,21 +957,21 @@ model SubscriptionSnapshot {
 
 // UserCredit: Créditos internos del usuario por cancelación anticipada o cambio de experto
 model UserCredit {
-  id              String   @id @default(uuid())
-  userId          String
-  amount          Decimal  // Monto del crédito
-  reason          CreditReason // Razón del crédito
-  sourceSubscriptionId String? // Suscripción que generó el crédito
+  id                      String       @id @default(uuid())
+  userId                  String
+  amount                  Decimal // Monto del crédito
+  reason                  CreditReason // Razón del crédito
+  sourceSubscriptionId    String? // Suscripción que generó el crédito
   appliedToSubscriptionId String? // Suscripción donde se aplicó (si ya se usó)
-  expiresAt       DateTime? // Fecha de expiración del crédito (opcional)
-  status          CreditStatus @default(ACTIVE)
-  createdAt       DateTime @default(now())
-  appliedAt       DateTime? // Fecha en que se aplicó
-  updatedAt       DateTime @updatedAt
+  expiresAt               DateTime? // Fecha de expiración del crédito (opcional)
+  status                  CreditStatus @default(ACTIVE)
+  createdAt               DateTime     @default(now())
+  appliedAt               DateTime? // Fecha en que se aplicó
+  updatedAt               DateTime     @updatedAt
 
   // Relaciones
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sourceSubscription Subscription? @relation("SourceSubscription", fields: [sourceSubscriptionId], references: [id])
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceSubscription    Subscription? @relation("SourceSubscription", fields: [sourceSubscriptionId], references: [id])
   appliedToSubscription Subscription? @relation("AppliedToSubscription", fields: [appliedToSubscriptionId], references: [id])
 
   @@index([userId])
@@ -926,15 +981,15 @@ model UserCredit {
 }
 
 enum CreditReason {
-  CANCELLATION_PARTIAL  // Cancelación a mitad de ciclo (días no usados)
-  EXPERT_SWITCH         // Cambio de experto (días restantes del anterior)
-  REFUND_CREDIT         // Reembolso convertido a crédito
-  PROMOTIONAL           // Crédito promocional
+  CANCELLATION_PARTIAL // Cancelación a mitad de ciclo (días no usados)
+  EXPERT_SWITCH // Cambio de experto (días restantes del anterior)
+  REFUND_CREDIT // Reembolso convertido a crédito
+  PROMOTIONAL // Crédito promocional
 }
 
 enum CreditStatus {
-  ACTIVE     // Crédito disponible para usar
-  APPLIED    // Crédito ya aplicado a una suscripción
-  EXPIRED    // Crédito expirado
-  CANCELLED  // Crédito cancelado
+  ACTIVE // Crédito disponible para usar
+  APPLIED // Crédito ya aplicado a una suscripción
+  EXPIRED // Crédito expirado
+  CANCELLED // Crédito cancelado
 }

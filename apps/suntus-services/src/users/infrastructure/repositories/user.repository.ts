@@ -64,6 +64,7 @@ export class UserRepository implements IUserRepository {
     name: string;
     role: 'CLIENT' | 'EXPERT';
     language?: string;
+    avatar?: string;
   }): Promise<User> {
     const prismaUser = await this.prisma.user.create({
       data: {
@@ -72,6 +73,7 @@ export class UserRepository implements IUserRepository {
         role: data.role,
         auth0Id: data.auth0Id,
         language: data.language || 'es',
+        avatar: data.avatar,
       },
     });
 
@@ -82,6 +84,7 @@ export class UserRepository implements IUserRepository {
     auth0Id?: string;
     name?: string;
     language?: string;
+    avatar?: string;
   }>): Promise<User> {
     const prismaUser = await this.prisma.user.update({
       where: { id },
@@ -89,6 +92,7 @@ export class UserRepository implements IUserRepository {
         ...(data.auth0Id && { auth0Id: data.auth0Id }),
         ...(data.name && { name: data.name }),
         ...(data.language && { language: data.language }),
+        ...(data.avatar && { avatar: data.avatar }),
       },
     });
 
@@ -116,6 +120,7 @@ export class UserRepository implements IUserRepository {
     role: UserRole;
     auth0Id?: string | null;
     language?: string | null;
+    avatar?: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): User {
@@ -134,6 +139,7 @@ export class UserRepository implements IUserRepository {
       prismaUser.updatedAt,
       prismaUser.auth0Id || undefined,
       prismaUser.language || 'es',
+      prismaUser.avatar || undefined,
     );
   }
 }

@@ -1,5 +1,5 @@
-import * as SecureStore from 'expo-secure-store';
 import './env.validation'; // Valida variables de entorno al importar
+import { getItem, setItem, removeItem } from './storage';
 
 /**
  * Cliente API para suntus-app
@@ -11,42 +11,31 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL!;
 const TOKEN_KEY = 'suntus_access_token';
 
 /**
- * Obtiene el token de acceso almacenado desde SecureStore
+ * Obtiene el token de acceso almacenado
+ * Usa SecureStore en móvil y localStorage en web
  * @returns Token JWT si existe, null si no hay token o hay error
  */
 export async function getAccessToken(): Promise<string | null> {
-  try {
-    return await SecureStore.getItemAsync(TOKEN_KEY);
-  } catch (error) {
-    console.error('Error getting access token:', error);
-    return null;
-  }
+  return await getItem(TOKEN_KEY);
 }
 
 /**
- * Guarda el token de acceso en SecureStore
+ * Guarda el token de acceso
+ * Usa SecureStore en móvil y localStorage en web
  * @param token - Token JWT a almacenar
  * @throws Error si falla el almacenamiento
  */
 export async function setAccessToken(token: string): Promise<void> {
-  try {
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
-  } catch (error) {
-    console.error('Error setting access token:', error);
-    throw error;
-  }
+  await setItem(TOKEN_KEY, token);
 }
 
 /**
- * Elimina el token de acceso de SecureStore
+ * Elimina el token de acceso
+ * Usa SecureStore en móvil y localStorage en web
  * No lanza error si el token no existe
  */
 export async function removeAccessToken(): Promise<void> {
-  try {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-  } catch (error) {
-    console.error('Error removing access token:', error);
-  }
+  await removeItem(TOKEN_KEY);
 }
 
 /**
@@ -70,9 +59,18 @@ export async function apiRequest<T>(
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  } else {
+    console.warn('[API] No access token found. User may need to login.');
   }
 
   const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+
+  if (__DEV__) {
+    console.log(`[API] ${options.method || 'GET'} ${url}`, {
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+    });
+  }
 
   const response = await fetch(url, {
     ...options,
@@ -81,6 +79,16 @@ export async function apiRequest<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+    
+    // Si es 401, el token puede ser inválido o no existe
+    if (response.status === 401) {
+      console.error('[API] Unauthorized - Token may be invalid or expired. User needs to login.');
+      // Opcional: limpiar token inválido
+      if (token) {
+        await removeAccessToken();
+      }
+    }
+    
     throw new Error(error.message || `HTTP ${response.status}`);
   }
 

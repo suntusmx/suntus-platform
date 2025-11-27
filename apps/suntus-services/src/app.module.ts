@@ -19,6 +19,8 @@ import { TermsAcceptanceGuard } from './terms/common/guards/terms-acceptance.gua
 import { I18nModule } from './common/i18n/i18n.module';
 import { I18nMiddleware } from './common/i18n/i18n.middleware';
 import { AuthModule } from './auth/auth.module';
+import { ClientProfileModule } from './client-profile/client-profile.module';
+import { LocationsModule } from './locations/locations.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -35,6 +37,8 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     AuthModule,
     UsersModule,
+    ClientProfileModule,
+    LocationsModule,
     AuditModule,
     TermsModule,
     StorageModule,

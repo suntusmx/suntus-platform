@@ -1,4 +1,4 @@
-import { TextInput, type TextInputProps } from 'react-native';
+import { TextInput, type TextInputProps, Platform } from 'react-native';
 import { forwardRef } from 'react';
 
 export interface InputProps extends Omit<TextInputProps, 'className'> {

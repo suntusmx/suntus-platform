@@ -3,12 +3,26 @@
     "private": true,
     "scripts": {
         "build": "turbo run build",
-        "dev": "turbo run dev",
+        "dev": "turbo run dev --filter=suntus-services --filter=suntus-app --filter=suntus-pro",
+        "dev:services": "turbo run dev --filter=suntus-services",
+        "dev:app": "turbo run dev --filter=suntus-app",
+        "dev:pro": "turbo run dev --filter=suntus-pro",
+        "dev:all": "turbo run dev",
         "lint": "turbo run lint",
         "format": "prettier --write \"**/*.{ts,tsx,md}\"",
         "clean": "turbo run clean && rm -rf node_modules apps/*/node_modules packages/*/node_modules",
         "type-check": "turbo run type-check",
-        "test": "turbo run test"
+        "test": "turbo run test",
+        "prisma:generate": "cd apps/suntus-services && pnpm prisma:generate",
+        "prisma:migrate": "cd apps/suntus-services && pnpm prisma:migrate",
+        "prisma:migrate:dev": "cd apps/suntus-services && pnpm prisma migrate dev",
+        "prisma:migrate:deploy": "cd apps/suntus-services && pnpm prisma migrate deploy",
+        "prisma:migrate:status": "cd apps/suntus-services && pnpm prisma migrate status",
+        "prisma:studio": "cd apps/suntus-services && pnpm prisma:studio",
+        "prisma:seed": "cd apps/suntus-services && pnpm prisma:seed",
+        "prisma:seed:mexico": "cd apps/suntus-services && pnpm prisma:seed:mexico",
+        "clean:metro": "rm -rf \"$TEMP/metro-cache\" 2>/dev/null || echo 'Cache de Metro limpiado'",
+        "clean:all": "pnpm clean && pnpm clean:metro"
     },
     "devDependencies": {
         "@babel/preset-flow": "^7.27.1",
@@ -22,7 +36,10 @@
         "node": ">=20"
     },
     "dependencies": {
+        "@react-native-async-storage/async-storage": "^2.1.0",
+        "@react-native-community/datetimepicker": "^8.2.0",
         "lucide-react-native": "^0.555.0",
-        "react-native-svg": "^15.15.0"
+        "react-native-svg": "^15.15.0",
+        "zustand": "^5.0.2"
     }
 }

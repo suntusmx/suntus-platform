@@ -1,5 +1,5 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
 import * as Localization from 'expo-localization';
 
 // Importar traducciones
@@ -37,3 +37,9 @@ i18n
 
 export default i18n;
 
+/**
+ * Hook helper para usar i18n
+ */
+export function useI18n() {
+  return useTranslation();
+}

@@ -24,6 +24,9 @@ export * from './components/atoms';
 // Exportar Moléculas (Atomic Design)
 export * from './components/molecules';
 
+// Exportar Organismos (Atomic Design)
+export * from './components/organisms/forms';
+
 // Exportar hooks (se resuelve automáticamente a .native.ts o .web.ts según la plataforma)
 export { useSuntusTheme } from './hooks/useSuntusTheme.web';
 

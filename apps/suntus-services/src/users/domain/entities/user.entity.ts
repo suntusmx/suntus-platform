@@ -12,6 +12,7 @@ export class User {
     public readonly updatedAt: Date,
     public readonly auth0Id?: string,
     public readonly language: string = 'es',
+    public readonly avatar?: string,
   ) {}
 
   /**

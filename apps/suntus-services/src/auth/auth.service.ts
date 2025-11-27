@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Env } from '../common/config/env.validation';
 import { UserRepository } from '../users/infrastructure/repositories/user.repository';
+import { PrismaService } from '../infrastructure/database/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -10,6 +11,7 @@ export class AuthService {
     private readonly configService: ConfigService<Env>,
     private readonly jwtService: JwtService,
     private readonly userRepository: UserRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -45,20 +47,37 @@ export class AuthService {
     name?: string;
     picture?: string;
   }): Promise<any> {
-    // Buscar usuario existente por auth0Id
-    let user = await this.userRepository.findByAuth0Id(auth0User.sub);
+    // Buscar usuario existente por auth0Id usando Prisma directamente
+    let user = await this.prisma.user.findUnique({
+      where: { auth0Id: auth0User.sub },
+    });
 
     if (!user) {
       // Buscar por email (puede que ya exista sin auth0Id)
-      user = await this.userRepository.findByEmail(auth0User.email);
+      user = await this.prisma.user.findUnique({
+        where: { email: auth0User.email },
+      });
     }
 
     if (user) {
       // Actualizar auth0Id si no lo tenía
       if (!user.auth0Id) {
-        user = await this.userRepository.update(user.id, {
-          auth0Id: auth0User.sub,
-          name: auth0User.name || user.name,
+        const avatarUrl = auth0User.picture || user.avatar || this.generateAvatarFallback(auth0User.email, auth0User.name);
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            auth0Id: auth0User.sub,
+            name: auth0User.name || user.name,
+            avatar: avatarUrl,
+          },
+        });
+      } else if (auth0User.picture && !user.avatar) {
+        // Actualizar avatar si viene de social login y no tiene uno
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            avatar: auth0User.picture,
+          },
         });
       }
       return user;
@@ -66,12 +85,16 @@ export class AuthService {
 
     // Crear nuevo usuario
     // Por defecto es CLIENT, puede cambiar a EXPERT después
-    const newUser = await this.userRepository.create({
-      auth0Id: auth0User.sub,
-      email: auth0User.email,
-      name: auth0User.name || auth0User.email.split('@')[0],
-      role: 'CLIENT',
-      language: 'es',
+    const avatarUrl = auth0User.picture || this.generateAvatarFallback(auth0User.email, auth0User.name);
+    const newUser = await this.prisma.user.create({
+      data: {
+        auth0Id: auth0User.sub,
+        email: auth0User.email,
+        name: auth0User.name || auth0User.email.split('@')[0],
+        avatar: avatarUrl,
+        role: 'CLIENT',
+        language: 'es',
+      },
     });
     return newUser;
   }
@@ -94,6 +117,47 @@ export class AuthService {
     return this.jwtService.sign(payload, {
       expiresIn: expiresIn as string,
     } as any);
+  }
+
+  /**
+   * Genera un avatar por defecto basado en iniciales y color
+   * @param email - Email del usuario
+   * @param name - Nombre del usuario (opcional)
+   * @returns URL de avatar generado o string con iniciales
+   */
+  private generateAvatarFallback(email: string, name?: string): string {
+    // Extraer iniciales
+    const initials = name
+      ? name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
+      : email[0].toUpperCase();
+
+    // Generar color basado en email (determinístico)
+    const colors = [
+      '#18CB96', // Color primario suntUS
+      '#FF6B6B',
+      '#4ECDC4',
+      '#45B7D1',
+      '#FFA07A',
+      '#98D8C8',
+      '#F7DC6F',
+      '#BB8FCE',
+    ];
+    const colorIndex = email.charCodeAt(0) % colors.length;
+    const color = colors[colorIndex];
+
+    // Por ahora retornamos un string con formato que el frontend puede usar
+    // En el futuro se puede generar una imagen real o usar un servicio como UI Avatars
+    return `data:image/svg+xml;base64,${Buffer.from(
+      `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="100" fill="${color}"/>
+        <text x="50" y="50" font-family="Arial" font-size="40" fill="white" text-anchor="middle" dominant-baseline="central">${initials}</text>
+      </svg>`,
+    ).toString('base64')}`;
   }
 
   /**

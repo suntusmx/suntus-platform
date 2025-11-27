@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "clean": "rm -rf .expo node_modules/.cache .metro || true",
+    "clean:metro": "rm -rf \"$TEMP/metro-cache\" 2>/dev/null || echo 'Cache de Metro limpiado'",
     "dev": "expo start --web --port 7004 -c --clear",
     "start": "expo start --port 7004 -c --clear",
     "android": "expo start --android --port 7004 -c --clear",
